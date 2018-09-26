@@ -7,6 +7,7 @@ import ru.shabashoff.entity.Message;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.concurrent.ExecutorService;
@@ -26,8 +27,20 @@ public class RCSSServerClient {
         executor = Executors.newFixedThreadPool(COUNT_THREADS);
 
         try {
-            socket = new DatagramSocket(SERVER_PORT, InetAddress.getByName("127.0.0.1"));
+            socket = new DatagramSocket();
+            socket.setReuseAddress(true);
+            InetAddress addr = InetAddress.getLocalHost();
 
+            byte[] sendData = "init test (version 7)".getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, addr, 6000);
+
+            log.info(new String(sendData));
+
+            socket.receive(sendPacket);
+
+            String modifiedSentence = new String(sendPacket.getData());
+
+            log.info("FROM SERVER:" + modifiedSentence);
 
         } catch (IOException e) {
             throw new IllegalComponentStateException("Cant connect to the server " + SERVER_HOST + ":" + SERVER_PORT + "\n Error:" + e.getMessage());
