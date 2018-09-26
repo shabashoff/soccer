@@ -29,18 +29,17 @@ public class RCSSServerClient {
         try {
             socket = new DatagramSocket();
             socket.setReuseAddress(true);
-            InetAddress addr = InetAddress.getLocalHost();
 
-            byte[] sendData = "init test (version 7)".getBytes();
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, addr, 6000);
+            log.info(socket.getLocalSocketAddress().toString());
+
+            byte[] sendData = "init test (version 7)".getBytes("UTF-8");
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("localhost"), SERVER_PORT);
+
+            log.info(sendPacket.getAddress().toString());
 
             log.info(new String(sendData));
 
-            socket.receive(sendPacket);
-
-            String modifiedSentence = new String(sendPacket.getData());
-
-            log.info("FROM SERVER:" + modifiedSentence);
+            socket.send(sendPacket);
 
         } catch (IOException e) {
             throw new IllegalComponentStateException("Cant connect to the server " + SERVER_HOST + ":" + SERVER_PORT + "\n Error:" + e.getMessage());
