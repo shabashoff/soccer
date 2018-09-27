@@ -1,68 +1,59 @@
 package ru.shabashoff.server;
 
 import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
-import ru.shabashoff.entity.Message;
 
-import java.awt.*;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 @Log4j
+@Getter
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class RCSSServerClient {
-    int COUNT_THREADS = 4;
     String SERVER_HOST = "localhost";
     int SERVER_PORT = 6000;
-    ExecutorService executor;
+
     DatagramSocket socket;
+    InetAddress serverAdress;
 
-    public RCSSServerClient() {
-        executor = Executors.newFixedThreadPool(COUNT_THREADS);
+    @SneakyThrows
+    public RCSSServerClient(String teamName) {
 
-        try {
-            socket = new DatagramSocket();
-            socket.setReuseAddress(true);
+        socket = new DatagramSocket();
+        socket.setReuseAddress(true);
 
-            log.info(socket.getLocalSocketAddress().toString());
+        serverAdress = InetAddress.getByName(SERVER_HOST);
 
-            byte[] sendData = "init test (version 7)".getBytes("UTF-8");
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("localhost"), SERVER_PORT);
+        log.info(socket.getLocalSocketAddress().toString());
 
-            log.info(sendPacket.getAddress().toString());
-
-            log.info(new String(sendData));
-
-            socket.send(sendPacket);
-
-        } catch (IOException e) {
-            throw new IllegalComponentStateException("Cant connect to the server " + SERVER_HOST + ":" + SERVER_PORT + "\n Error:" + e.getMessage());
-        }
+        initTeam(teamName);
     }
 
+    @SneakyThrows
+    public String sendMessage(String msg) {
+        byte[] bytes = msg.getBytes();
+        DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, serverAdress, SERVER_PORT);
 
-    public Future<?> sendMessage(Message msg) {
-        SenderMsg sendMsg = new SenderMsg(msg);
-        return executor.submit(sendMsg);
+        log.info("Send to the server: " + msg);
+
+        socket.send(sendPacket);
+
+        bytes = new byte[2048];
+        DatagramPacket getPacket = new DatagramPacket(bytes, bytes.length);
+
+        socket.receive(getPacket);
+
+        String response = new String(bytes);
+        log.info("Response from the server: " + response);
+
+        return response;
     }
 
-    @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-    private class SenderMsg implements Runnable {
-
-        Message msg;
-
-        private SenderMsg(Message msg) {
-            this.msg = msg;
-        }
-
-        public void run() {
-
-        }
+    private void initTeam(String teamName) {
+        sendMessage("(init " + teamName + " (version 7))");
     }
 }
