@@ -4,30 +4,53 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
 import ru.shabashoff.entity.GameObject;
-import ru.shabashoff.entity.Params;
+import ru.shabashoff.entity.SeeObjects;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 
 @Log4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class MsgParser {
-    public Map<GameObject, Params> parseSeeMessage(String message) {
-        HashMap<GameObject, Params> map = new HashMap<>();
+
+    public SeeObjects parseSeeMessage(String message) {
         char[] chars = message.toCharArray();
+        ArrayList<GameObject> gameObjects = new ArrayList<>();
 
-        int n = 0;
+        GameObject currObj = new GameObject();
 
-        while (n < chars.length) {
-            while (isSpace(chars[n])) n++;
+        Long start = Long.valueOf(getNextStr(chars, 5));
 
-            String nextStr = getNextStr(chars, n);
-            log.info(nextStr);
+        int level = 0;
 
-            n += nextStr.length();
+        for (int i = 6 + start.toString().length(); i < chars.length; i++) {
+
+            while (isSpace(chars[i])) i++;
+
+            if (chars[i] == '(') {
+                if (level == 0) {
+                    currObj = new GameObject();
+                }
+                level++;
+            } else {
+                if (chars[i] == ')') {
+                    if (level == 1) {
+                        gameObjects.add(currObj);
+                    }
+                    level--;
+                } else {
+                    String s = getNextStr(chars, i);
+
+                    if (level == 2) {
+                        currObj.addName(s.charAt(0));
+                    } else {
+                        currObj.addNum(Float.valueOf(s));
+                    }
+                    i += s.length() - 1;
+                }
+            }
         }
 
-        return null;
+        return new SeeObjects(gameObjects, start);
     }
 
 
@@ -55,5 +78,4 @@ public class MsgParser {
     private boolean isBracket(char c) {
         return c == '(' || c == ')';
     }
-
 }

@@ -23,4 +23,12 @@ public class Player {
     public void move(int x, int y) {
         rcssPlayer.sendMessage(MessageFormat.format("(move {0} {1})", x, y));
     }
+
+    public void dash(int power) {
+        rcssPlayer.sendMessage(MessageFormat.format("(dash {0})", power));
+    }
+
+    public void turn(int angle) {
+        rcssPlayer.sendMessage(MessageFormat.format("(turn {0})", angle));
+    }
 }
