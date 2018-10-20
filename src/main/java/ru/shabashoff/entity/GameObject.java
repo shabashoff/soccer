@@ -1,11 +1,14 @@
 package ru.shabashoff.entity;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class GameObject {
     List<Character> naming;
     List<Float> numbers;

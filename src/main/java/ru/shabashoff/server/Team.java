@@ -10,9 +10,16 @@ import java.util.List;
 import java.util.Random;
 
 @Log4j
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Team {
-    List<Player> players = new ArrayList<>();
+    final List<Player> players = new ArrayList<>();
+    static int teamCounts = 1;
+
+
+    public Team() {
+        this(11, "team-" + teamCounts++);
+    }
+
 
     public Team(int countPlayers, String teamName) {
         for (int i = 0; i < countPlayers; i++) {

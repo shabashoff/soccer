@@ -9,13 +9,12 @@ import ru.shabashoff.server.Team;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class Launch {
 
-    static String TEAM_NAME = "test";
-
+    String TEAM_NAME = "test";
 
     public static void main(String[] args) {
         log.info("Started app");
 
-        Team team = new Team(11, TEAM_NAME);
+        Team team = new Team();
 
         team.simpleStrategy();
     }

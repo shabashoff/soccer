@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
+import ru.shabashoff.parser.MsgParser;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -18,15 +19,17 @@ public class RCSSServerClient {
     int SERVER_PORT = 6000;
 
     DatagramSocket socket;
-    InetAddress serverAdress;
+    InetAddress serverAddress;
+
+    MsgParser parse = new MsgParser();
+
 
     @SneakyThrows
     public RCSSServerClient(String teamName) {
-
         socket = new DatagramSocket();
         socket.setReuseAddress(true);
 
-        serverAdress = InetAddress.getByName(SERVER_HOST);
+        serverAddress = InetAddress.getByName(SERVER_HOST);
 
         log.info(socket.getLocalSocketAddress().toString());
 
@@ -36,7 +39,7 @@ public class RCSSServerClient {
     @SneakyThrows
     public String sendMessage(String msg) {
         byte[] bytes = msg.getBytes();
-        DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, serverAdress, SERVER_PORT);
+        DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, serverAddress, SERVER_PORT);
 
         log.info("Send to the server: " + msg);
 
