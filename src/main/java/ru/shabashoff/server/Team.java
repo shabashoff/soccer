@@ -7,7 +7,7 @@ import lombok.extern.log4j.Log4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.Scanner;
 
 @Log4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -29,13 +29,38 @@ public class Team {
 
     @SneakyThrows
     public void simpleStrategy() {
-        Random rn = new Random();
+        Scanner sc = new Scanner(System.in);
 
         while (true) {
-            for (Player player : players) {
-                player.move(rn.nextInt(100), rn.nextInt(100));
+            log.info("Enter command move or turn or dash: ");
+            String next = sc.next();
+            switch (next) {
+                case "move":
+                    log.info("Enter x,y: ");
+                    int x, y;
+                    x = sc.nextInt();
+                    y = sc.nextInt();
+                    for (Player player : players) {
+                        player.move(x, y);
+                    }
+                    break;
+                case "turn":
+                    log.info("Enter angle: ");
+                    int a;
+                    a = sc.nextInt();
+                    for (Player player : players) {
+                        player.turn(a);
+                    }
+                    break;
+                case "dash":
+                    log.info("Enter angle: ");
+                    int power;
+                    power = sc.nextInt();
+                    for (Player player : players) {
+                        player.dash(power);
+                    }
+                    break;
             }
-            Thread.sleep(10_000);
         }
     }
 }
