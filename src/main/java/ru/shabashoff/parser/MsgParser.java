@@ -3,10 +3,8 @@ package ru.shabashoff.parser;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
-import ru.shabashoff.entity.GameObject;
-import ru.shabashoff.entity.MessageType;
-import ru.shabashoff.entity.SeeObjects;
-import ru.shabashoff.entity.ServerMessage;
+import ru.shabashoff.entity.server.MessageType;
+import ru.shabashoff.entity.server.ServerMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,52 +12,6 @@ import java.util.List;
 @Log4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class MsgParser {
-
-    @Deprecated
-    public SeeObjects parseSeeMessage(String message) {
-        char[] chars = message.toCharArray();
-        ArrayList<GameObject> gameObjects = new ArrayList<>();
-
-        GameObject currObj = new GameObject();
-
-        Long start = Long.valueOf(getNextStr(chars, 5));
-
-        int level = 0;
-
-        for (int i = 6 + start.toString().length(); i < chars.length; i++) {
-
-            while (isSpace(chars[i])) i++;
-
-            if (chars[i] == '(') {
-                if (level == 0) {
-                    currObj = new GameObject();
-                }
-                level++;
-            }
-            else {
-                if (chars[i] == ')') {
-                    if (level == 1) {
-                        gameObjects.add(currObj);
-                    }
-                    level--;
-                }
-                else {
-                    String s = getNextStr(chars, i);
-
-                    if (level == 2) {
-                        currObj.addName(s.charAt(0));
-                    }
-                    else {
-                        currObj.addNum(Float.valueOf(s));
-                    }
-                    i += s.length() - 1;
-                }
-            }
-        }
-
-        return new SeeObjects(gameObjects, start);
-    }
-
 
     private List<String> getMessages(String message) {
         List<String> list = new ArrayList<>();
@@ -70,24 +22,22 @@ public class MsgParser {
             if (chars[i] == '(') count++;
             else if (chars[i] == ')') count--;
 
-            if (chars[i] == ' ' && count == 0) {
+            if ((chars[i] == ' ') && count == 0) {
                 list.add(new String(chars, start, i - start));
                 start = i + 1;
             }
         }
+        list.add(new String(chars, start, message.length() - start));
         return list;
     }
 
 
     public ServerMessage parseMessage(String message) {
         MessageType type = parseType(message);
-        log.info(type);
-        ServerMessage seeObjects = ServerMessage.build(type);
-
+        ServerMessage serverMessage = ServerMessage.build(type);
         List<String> messages = getMessages(message.substring(message.indexOf(' ') + 1, message.length() - 1));
-        log.info(messages);
-        seeObjects.fillFields(messages);
-        return seeObjects;
+        serverMessage.fillFields(messages);
+        return serverMessage;
     }
 
 

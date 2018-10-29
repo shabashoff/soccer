@@ -3,7 +3,7 @@ package ru.shabashoff.start;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
-import ru.shabashoff.server.Team;
+import ru.shabashoff.entity.Team;
 
 @Log4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)

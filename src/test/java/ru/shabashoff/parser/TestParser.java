@@ -5,7 +5,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
 import org.junit.Assert;
 import org.junit.Test;
-import ru.shabashoff.entity.*;
+import ru.shabashoff.entity.server.*;
 
 import java.util.List;
 
@@ -19,15 +19,15 @@ public class TestParser {
     @Test
     public void testParserSeeMessage() {
         MsgParser parser = new MsgParser();
-        SeeObjects seeObjects = (SeeObjects) parser.parseMessage(TEST_SEE_MESSAGE);
+        SeeMessage seeMessage = (SeeMessage) parser.parseMessage(TEST_SEE_MESSAGE);
 
-        log.info(seeObjects.getGameObjects());
+        log.info(seeMessage.getGameObjects());
 
-        Assert.assertEquals(seeObjects.getType(), MessageType.SEE_MESSAGE);
+        Assert.assertEquals(seeMessage.getType(), MessageType.SEE_MESSAGE);
 
-        Assert.assertEquals((long) seeObjects.getTime(), 0L);
+        Assert.assertEquals(seeMessage.getTime(), 0L);
 
-        GameObject gameObject = seeObjects.getGameObjects().get(0);
+        GameObject gameObject = seeMessage.getGameObjects().get(0);
 
         List<Character> naming = gameObject.getNaming();
         List<Float> numbers = gameObject.getNumbers();

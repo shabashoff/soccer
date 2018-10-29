@@ -1,7 +1,8 @@
-package ru.shabashoff.entity;
+package ru.shabashoff.entity.server;
 
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
 
 import java.util.ArrayList;
@@ -9,32 +10,20 @@ import java.util.List;
 
 @Log4j
 @Getter
-public class SeeObjects extends ServerMessage {
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class SeeMessage extends ServerMessage {
     final List<GameObject> gameObjects;
 
-    @Setter
-    Long time;
+    long time;
 
-    public SeeObjects() {
+    public SeeMessage() {
         super(MessageType.SEE_MESSAGE);
         this.gameObjects = new ArrayList<>();
-    }
-
-    public SeeObjects(Long time) {
-        super(MessageType.SEE_MESSAGE);
-        this.gameObjects = new ArrayList<>();
-        this.time = time;
-    }
-
-    public SeeObjects(List<GameObject> gameObjects, Long time) {
-        super(MessageType.SEE_MESSAGE);
-        this.gameObjects = gameObjects;
-        this.time = time;
     }
 
     @Override
     public void fillFields(List<String> params) {
-        time = Long.valueOf(params.get(0));
+        time = Long.parseLong(params.get(0));
         for (int i = 1; i < params.size(); i++) {
             gameObjects.add(parseGameObject(params.get(i)));
         }

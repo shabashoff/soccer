@@ -1,7 +1,7 @@
-package ru.shabashoff.entity;
+package ru.shabashoff.entity.server;
 
 public enum MessageType {
-    SERVER_PARAMS, PLAYER_TYPE, SEE_MESSAGE, INIT_MESSAGE, SENSE_BODY;//TODO: check message types!
+    SERVER_PARAMS, PLAYER_PARAMS, PLAYER_TYPE, SEE_MESSAGE, INIT_MESSAGE, SENSE_BODY,CHANGE_PLAYER_TYPE,HEAR, ERROR;
 
     public static MessageType parseType(String type) {
         switch (type) {
@@ -15,6 +15,14 @@ public enum MessageType {
                 return INIT_MESSAGE;
             case "sense_body":
                 return SENSE_BODY;
+            case "player_param":
+                return PLAYER_PARAMS;
+            case "change_player_type":
+                return CHANGE_PLAYER_TYPE;
+            case "hear":
+                return HEAR;
+            case "error":
+                return ERROR;
         }
         throw new IllegalArgumentException("Can't parse server message type: " + type);
     }

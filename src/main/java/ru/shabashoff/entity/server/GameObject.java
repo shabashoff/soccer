@@ -1,4 +1,4 @@
-package ru.shabashoff.entity;
+package ru.shabashoff.entity.server;
 
 import lombok.AccessLevel;
 import lombok.Data;

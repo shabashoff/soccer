@@ -1,4 +1,4 @@
-package ru.shabashoff.entity;
+package ru.shabashoff.entity.server;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -7,13 +7,13 @@ import lombok.experimental.FieldDefaults;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Getter
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class PlayerType extends ServerMessage{
+public class ServerParameters extends ServerMessage {
     List<Double> parameters = new ArrayList<>();
-    public PlayerType() {
-        super(MessageType.PLAYER_TYPE);
+
+    public ServerParameters() {
+        super(MessageType.SERVER_PARAMS);
     }
 
     @Override

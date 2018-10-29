@@ -1,4 +1,4 @@
-package ru.shabashoff.server;
+package ru.shabashoff.entity;
 
 import lombok.AccessLevel;
 import lombok.SneakyThrows;
@@ -32,7 +32,7 @@ public class Team {
         Scanner sc = new Scanner(System.in);
 
         while (true) {
-            log.info("Enter command move or turn or dash: ");
+            /*log.info("Enter command move or turn or dash: ");
             String next = sc.next();
             switch (next) {
                 case "move":
@@ -53,14 +53,15 @@ public class Team {
                     }
                     break;
                 case "dash":
-                    log.info("Enter angle: ");
+                    log.info("Enter power: ");
                     int power;
                     power = sc.nextInt();
                     for (Player player : players) {
                         player.dash(power);
                     }
                     break;
-            }
+            }*/
+            Thread.sleep(500);
         }
     }
 }
