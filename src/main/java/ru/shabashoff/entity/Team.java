@@ -4,6 +4,8 @@ import lombok.AccessLevel;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
+import ru.shabashoff.decision.Action;
+import ru.shabashoff.decision.DecisionTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,13 +19,15 @@ public class Team {
 
 
     public Team() {
-        this(11, "team-" + teamCounts++);
+        this(1, "team-" + teamCounts++);
     }
 
 
     public Team(int countPlayers, String teamName) {
         for (int i = 0; i < countPlayers; i++) {
-            players.add(new Player(i, teamName));
+            Player player = new Player(i, teamName, createSimpleTree());
+            players.add(player);
+            player.move(-25, 0);
         }
     }
 
@@ -32,7 +36,7 @@ public class Team {
         Scanner sc = new Scanner(System.in);
 
         while (true) {
-            /*log.info("Enter command move or turn or dash: ");
+            log.info("Enter command move or turn or dash: ");
             String next = sc.next();
             switch (next) {
                 case "move":
@@ -60,8 +64,37 @@ public class Team {
                         player.dash(power);
                     }
                     break;
-            }*/
+            }
             Thread.sleep(500);
         }
+    }
+
+    private DecisionTree createSimpleTree() {
+
+        final Point[] mainPoints = new Point[]{new Point(-40, -20), new Point(40, -20), new Point(40, 20), new Point(-40, 20)};
+
+        final double minLen = 1.0;
+
+        class Wrapper {
+            private int n = 1;
+
+            public int getN() {
+                return n;
+            }
+
+            public void add() {
+                n = (n + 1) % mainPoints.length;
+            }
+        }
+
+        final Wrapper curElem = new Wrapper();
+
+        return new DecisionTree(new Action(r -> {
+            log.info("Expected point: " + r.getExpectedPoint());
+            r.goTo(mainPoints[curElem.getN()].getX(), mainPoints[curElem.getN()].getY());
+
+            if (new Vector(r.getExpectedPoint(), mainPoints[curElem.getN()]).getLength() < minLen) curElem.add();
+
+        }));
     }
 }

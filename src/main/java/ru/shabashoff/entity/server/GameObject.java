@@ -10,16 +10,26 @@ import java.util.List;
 @Data
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class GameObject {
-    List<Character> naming;
+
+    StringBuilder naming;
     List<Float> numbers;
 
     public GameObject() {
-        this.naming = new ArrayList<>();
+        this.naming = new StringBuilder();
         this.numbers = new ArrayList<>();
     }
 
+
+    public String getName() {
+        return naming.toString();
+    }
+
+    public Float getNumOnPosition(int n) {
+        return numbers.get(n);
+    }
+
     public void addName(char c) {
-        naming.add(c);
+        naming.append(c);
     }
 
     public void addNum(Float n) {

@@ -3,6 +3,8 @@ package ru.shabashoff.entity;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
+import ru.shabashoff.Utils.GameUtils;
+import ru.shabashoff.decision.DecisionTree;
 import ru.shabashoff.entity.server.ErrorMessage;
 import ru.shabashoff.entity.server.HearMessage;
 import ru.shabashoff.entity.server.SeeMessage;
@@ -28,8 +30,11 @@ public class Player extends RCSSServerClient {
     volatile SeeMessage see;
     final Object[] seeMonitor = new Object[0];
 
-    public Player(int id, String teamName) {
+    final DecisionTree tree;
+
+    public Player(int id, String teamName, DecisionTree tree) {
         super(teamName);
+        this.tree = tree;
         this.id = id;
         this.teamName = teamName;
     }
@@ -46,9 +51,14 @@ public class Player extends RCSSServerClient {
         sendMessage(MessageFormat.format("(turn {0})", angle));
     }
 
-    public void circleRun() {
-        dash(50);
-        turn(10);
+    public void action() {
+        tree.action(this);
+    }
+
+    public Point getExpectedPoint() {
+        synchronized (seeMonitor) {
+            return see.getPlayerExpectedPoint();
+        }
     }
 
     @Override
@@ -72,7 +82,45 @@ public class Player extends RCSSServerClient {
     protected void onSeeMessage(SeeMessage message) {
         synchronized (seeMonitor) {
             see = message;
+            synchronized (senseMonitor) {
+                see.findPlayerPointAngle();
+            }
         }
-        circleRun();
+        action();
+    }
+
+    public void goTo(double x, double y) {
+        double minAngle = 20;
+
+        Vector vector = new Vector(getExpectedPoint(), new Point(x, y));
+
+        double angle = vector.getAngle();
+
+        double playerAngle;
+
+        synchronized (senseMonitor) {
+            playerAngle = sense.getSpeedAngle();
+        }
+
+        log.info("Angle to point " + angle);
+        log.info("Player angle   " + playerAngle);
+
+        angle = GameUtils.diffAngles(playerAngle, angle);
+
+        log.info("Angle to go   " + angle);
+
+
+        if (minAngle > Math.abs(angle)) {
+            dash(50);
+        }
+        else {
+            if (angle > 0) {
+                turn(-5);
+            }
+            else {
+                turn(5);
+            }
+        }
+
     }
 }

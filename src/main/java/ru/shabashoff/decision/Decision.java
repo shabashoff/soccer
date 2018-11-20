@@ -20,6 +20,6 @@ public class Decision implements Node {
     @Override
     public void run(Player player) {
         if (runable.run(player)) left.run(player);
-        else  right.run(player);
+        else right.run(player);
     }
 }
