@@ -1,8 +1,10 @@
 package ru.shabashoff.Utils;
 
+import lombok.extern.log4j.Log4j;
 import org.junit.Assert;
 import org.junit.Test;
 
+@Log4j
 public class GameUtilsTest {
     @Test
     public void test() {
@@ -29,5 +31,11 @@ public class GameUtilsTest {
 
         Assert.assertEquals(-52, GameUtils.diffAngles(13, -39), 0.000001);
 
+    }
+
+
+    @Test
+    public void testCompare() {
+        log.info(GameUtils.compare(159, 39));
     }
 }

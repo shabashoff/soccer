@@ -22,6 +22,11 @@ public class Point {
         return new Point(x + p.getX(), y + p.getY());
     }
 
+    public void add(Point p) {
+        x += p.getX();
+        y += p.getY();
+    }
+
     public Point minusPoint(Point p) {
         return new Point(x - p.getX(), y - p.getY());
     }
@@ -32,6 +37,11 @@ public class Point {
 
         x = xx;
         y = yy;
+    }
+
+    public void divide(double n) {
+        x /= n;
+        y /= n;
     }
 
     public void setLength(double l) {

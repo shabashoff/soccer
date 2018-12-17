@@ -1,0 +1,33 @@
+# - Comments
+# Actions - move x y // dash p // turn a // catchBall a // goTo x y // goTo point //kick // rotateToGoal 
+# Getters - getCurrentState // getExpectedPoint // getExpectedAngle // getBallPoint // getGoaliePoint 
+# Checkers - isBallCatchable
+
+catched = boolean false
+
+catchMoveCount = int 0
+
+IF catched == true
+	catchMoveCount = catchMoveCount + 1
+	IF catchMoveCount < 3
+		rotateToGoal
+		END
+	ELSE
+		kick
+		catched = false
+		catchMoveCount = 0
+		END
+	END
+ELSE
+	IF getBallPoint != null
+		IF isBallCatchable
+			catched = true
+			catchBall
+			END
+		ELSE
+			goTo getBallPoint
+			END
+		END
+	ELSE
+		turn 15
+		END

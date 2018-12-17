@@ -32,6 +32,8 @@ public class Player extends RCSSServerClient {
 
     final DecisionTree tree;
 
+    final Point goaliePoint = new Point(54, 0);
+
     public Player(int id, String teamName, DecisionTree tree) {
         super(teamName);
         this.tree = tree;
@@ -51,6 +53,20 @@ public class Player extends RCSSServerClient {
         sendMessage(MessageFormat.format("(turn {0})", angle));
     }
 
+    public void catchBall(int angle) {
+        sendMessage(MessageFormat.format("(catch {0})", angle));
+    }
+
+    public void kick(int power, int dicrection) {
+        sendMessage(MessageFormat.format("(kick {0} {1})", power, dicrection));
+    }
+
+    public void rotateToGoal() {
+        synchronized (seeMonitor) {
+            turn(-(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint)));
+        }
+    }
+
     public void action() {
         tree.action(this);
     }
@@ -58,6 +74,18 @@ public class Player extends RCSSServerClient {
     public Point getExpectedPoint() {
         synchronized (seeMonitor) {
             return see.getPlayerExpectedPoint();
+        }
+    }
+
+    public Double getExpectedAngle() {
+        synchronized (seeMonitor) {
+            return see.getPlayerExpectedAngle();
+        }
+    }
+
+    public Point getBallPoint() {
+        synchronized (seeMonitor) {
+            return see.getBallPoint();
         }
     }
 
@@ -89,6 +117,14 @@ public class Player extends RCSSServerClient {
         action();
     }
 
+    public SenseBody getSense() {
+        return sense;
+    }
+
+    public SeeMessage getSee() {
+        return see;
+    }
+
     public void goTo(double x, double y) {
         double minAngle = 20;
 
@@ -96,11 +132,7 @@ public class Player extends RCSSServerClient {
 
         double angle = vector.getAngle();
 
-        double playerAngle;
-
-        synchronized (senseMonitor) {
-            playerAngle = sense.getSpeedAngle();
-        }
+        double playerAngle = see.getPlayerExpectedAngle();
 
         log.info("Angle to point " + angle);
         log.info("Player angle   " + playerAngle);
@@ -114,12 +146,8 @@ public class Player extends RCSSServerClient {
             dash(50);
         }
         else {
-            if (angle > 0) {
-                turn(-5);
-            }
-            else {
-                turn(5);
-            }
+            turn((int) angle);
+
         }
 
     }

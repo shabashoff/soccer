@@ -4,12 +4,17 @@ import lombok.AccessLevel;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
-import ru.shabashoff.decision.Action;
+import ru.shabashoff.Utils.GameUtils;
+import ru.shabashoff.decision.Decision;
 import ru.shabashoff.decision.DecisionTree;
+import ru.shabashoff.decision.Node;
+import ru.shabashoff.entity.server.SeeMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -19,7 +24,7 @@ public class Team {
 
 
     public Team() {
-        this(1, "team-" + teamCounts++);
+        this(5, "team-" + teamCounts++);
     }
 
 
@@ -73,7 +78,7 @@ public class Team {
 
         final Point[] mainPoints = new Point[]{new Point(-40, -20), new Point(40, -20), new Point(40, 20), new Point(-40, 20)};
 
-        final double minLen = 1.0;
+        final double minLen = 10.0;
 
         class Wrapper {
             private int n = 1;
@@ -87,14 +92,52 @@ public class Team {
             }
         }
 
+        final AtomicBoolean catched = new AtomicBoolean(false);
+
+        final AtomicInteger catchMoveCount = new AtomicInteger(0);
+
         final Wrapper curElem = new Wrapper();
 
-        return new DecisionTree(new Action(r -> {
-            log.info("Expected point: " + r.getExpectedPoint());
-            r.goTo(mainPoints[curElem.getN()].getX(), mainPoints[curElem.getN()].getY());
+        Node ballActions = p -> {
+            if (catchMoveCount.getAndIncrement() < 2) {
+                p.rotateToGoal();
 
-            if (new Vector(r.getExpectedPoint(), mainPoints[curElem.getN()]).getLength() < minLen) curElem.add();
+            }
+            else {
+                p.kick(100, 0);
+                catched.set(false);
+                catchMoveCount.set(0);
+            }
+        };
 
-        }));
+        Node findingBall = p -> p.turn(15);
+
+        Node catchBall = p -> {
+            catched.set(true);
+            p.catchBall(0);
+        };
+
+        Node goToBall = r -> {
+            SeeMessage see = r.getSee();
+            if (see != null) {
+                Point ballPoint = see.getBallPoint();
+                if (ballPoint != null) {
+                    r.goTo(ballPoint.getX(), ballPoint.getY());
+                }
+            }
+            else {
+                log.info("Expected point: " + r.getExpectedPoint());
+                r.goTo(mainPoints[curElem.getN()].getX(), mainPoints[curElem.getN()].getY());
+                if (new Vector(r.getExpectedPoint(), mainPoints[curElem.getN()]).getLength() < minLen) curElem.add();
+            }
+        };
+
+        Decision decisionCatchGo = new Decision(catchBall, goToBall, p -> GameUtils.isBallCatchable(p.getSee()));
+
+        Decision findOrGo = new Decision(decisionCatchGo, findingBall, p -> p.getSee() != null && p.getSee().getBallPoint() != null);
+
+        Decision kickOrOther = new Decision(ballActions,findOrGo,  p -> catched.get());
+
+        return new DecisionTree(kickOrOther);
     }
 }

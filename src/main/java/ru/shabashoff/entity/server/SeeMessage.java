@@ -8,7 +8,10 @@ import ru.shabashoff.Utils.GameUtils;
 import ru.shabashoff.entity.Point;
 import ru.shabashoff.entity.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Log4j
 @Getter
@@ -28,7 +31,6 @@ public class SeeMessage extends ServerMessage {
 
     final static double X_RIGHT_FLAGS = X_RIGHT_LINE + 5;
     final static double X_LEFT_FLAGS = X_LEFT_LINE - 5;
-
 
     final static Map<String, Point> defObjects = new HashMap<>();
 
@@ -70,6 +72,8 @@ public class SeeMessage extends ServerMessage {
 
     Point playerExpectedPoint;
 
+    Point ballPoint;
+
     double playerExpectedAngle;
 
 
@@ -86,14 +90,29 @@ public class SeeMessage extends ServerMessage {
         }
     }
 
+    public Map<String, Point> getDefObjects() {
+        return defObjects;
+    }
+
+    public Point getBallPoint() {
+        if (ballPoint != null) return ballPoint;
+
+        if (playerExpectedPoint == null) return null;
+
+        for (GameObject gameObject : gameObjects) {
+            if ("b".equals(gameObject.getName())) {
+                ballPoint = playerExpectedPoint.addPoint(GameUtils.getPointByAngleAndLength(gameObject.getNumOnPosition(0),
+                        GameUtils.convertToRadians(gameObject.getNumOnPosition(1) + getPlayerExpectedAngle())));
+
+                return ballPoint;
+            }
+        }
+
+        return null;
+    }
+
     public void findPlayerPointAngle() {
-        ArrayList<Point> points = new ArrayList<>();
-
-        GameObject prev = null;
-
         List<GameObject> mainObjects = new ArrayList<>();
-
-        AverageHelper helper;
 
         gameObjects.forEach(g -> {
             if (defObjects.containsKey(g.getName())) mainObjects.add(g);
@@ -104,51 +123,53 @@ public class SeeMessage extends ServerMessage {
             return;
         }
 
-        prev = mainObjects.get(1);
-        Point[] pps = calcExpectedPoint(mainObjects.get(0), mainObjects.get(1));
+        GameObject prev = mainObjects.get(0);
 
-        helper = new AverageHelper(pps[0], pps[1]);
+        ArrayList<Point> fPoints = new ArrayList<>();
 
-        for (int i = 2; i < mainObjects.size(); i++) {
+
+        for (int i = 1; i < mainObjects.size(); i++) {
             GameObject gameObject = mainObjects.get(i);
 
             Point[] expPoints = calcExpectedPoint(prev, gameObject);
 
-            log.info("Expected points: " + Arrays.toString(expPoints));
-
-            for (Point expPoint : expPoints) {
-                helper.addPoint(expPoint);
+            Point validPoint = GameUtils.getValidPoint(expPoints);
+            if (validPoint != null) {
+                fPoints.add(validPoint);
             }
 
-            prev = gameObject;
-            helper.nextStep();
+            prev = mainObjects.get(i);
         }
 
-        if (helper.getSize() != 1) {
-            log.error("Size of expected points: " + helper.getSize());
-            for (int i = 0; i < helper.getSize(); i++) {
-                log.error(helper.getPoint(i).getAverage());
-            }
+        Point sum = new Point();
+
+        for (Point point : fPoints) {
+            sum.add(point);
         }
 
-        playerExpectedPoint = helper.getPoint(0).getAverage();
+        sum.divide(fPoints.size());
+
+        playerExpectedPoint = sum;
 
         prev = mainObjects.get(0);
+
         double sumAngle = 0.0;
+
         for (int i = 1; i < mainObjects.size(); i++) {
             sumAngle += calcExpectedAngle(prev, mainObjects.get(i));
 
             prev = mainObjects.get(i);
         }
+
         playerExpectedAngle = sumAngle / (mainObjects.size() - 1);
     }
 
     public double calcExpectedAngle(GameObject g1, GameObject g2) {
         Point point = defObjects.get(g1.getName());
-        double angle = GameUtils.convertToRadians(g1.getNumOnPosition(1));
+        double angle = g1.getNumOnPosition(1);
 
         Point prevPoint = defObjects.get(g2.getName());
-        double prevAngle = GameUtils.convertToRadians(g2.getNumOnPosition(1));
+        double prevAngle = g2.getNumOnPosition(1);
 
         return calcExpectedAngle(point, angle, prevPoint, prevAngle, playerExpectedPoint);
     }
@@ -245,93 +266,5 @@ public class SeeMessage extends ServerMessage {
             if (c == ')') l--;
         }
         return gameObject;
-    }
-}
-
-@Log4j
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class AverageHelper {
-    List<PointAverage> pointAverages = new LinkedList<>();
-    int step = 1;
-    final double MAX_DELTA = 10.0;
-
-    AverageHelper(Point... points) {
-        for (Point point : points) {
-            pointAverages.add(new PointAverage(point));
-        }
-    }
-
-    void addPoint(Point p) {
-        for (PointAverage point : pointAverages) {
-            double delta = point.getDelta(p);
-            log.info("p1: " + p + " average p: " + point.getAverage() + " delta: " + delta);
-            if (delta <= MAX_DELTA) {
-                point.addPoint(p);
-                break;
-            }
-        }
-    }
-
-    PointAverage getPoint(int n) {
-        return pointAverages.get(n);
-    }
-
-    int getSize() {
-        return pointAverages.size();
-    }
-
-    void nextStep() {
-        pointAverages.removeIf(next -> next.getCount() < step);
-        step++;
-    }
-}
-
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-class PointAverage {
-    AverageCalculating x = new AverageCalculating();
-    AverageCalculating y = new AverageCalculating();
-
-    PointAverage() {
-    }
-
-    int getCount() {
-        return x.getCount();
-    }
-
-    PointAverage(Point p) {
-        addPoint(p);
-    }
-
-    void addPoint(Point p) {
-        x.addNum(p.getX());
-        y.addNum(p.getY());
-    }
-
-    Point getAverage() {
-        return new Point(x.getAverage(), y.getAverage());
-    }
-
-    double getDelta(Point p) {
-        return GameUtils.getLength(getAverage(), p);
-    }
-}
-
-@Getter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class AverageCalculating {
-    double sum = 0.0;
-    int count = 0;
-
-    void addNum(double n) {
-        sum += n;
-        count++;
-    }
-
-    double getAverage() {
-        return sum / count;
-    }
-
-    double getDelta(double n) {
-        return Math.abs(getAverage() - n);
     }
 }

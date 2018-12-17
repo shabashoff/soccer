@@ -4,8 +4,10 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import ru.shabashoff.entity.Player;
 
+import java.io.Serializable;
+
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class DecisionTree {
+public class DecisionTree implements Serializable {
     Node head;
 
     public DecisionTree(Node head) {

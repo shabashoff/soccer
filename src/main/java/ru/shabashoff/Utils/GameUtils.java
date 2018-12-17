@@ -1,8 +1,13 @@
 package ru.shabashoff.Utils;
 
+import lombok.extern.log4j.Log4j;
 import ru.shabashoff.entity.Point;
 import ru.shabashoff.entity.Vector;
+import ru.shabashoff.entity.server.SeeMessage;
 
+import java.util.Arrays;
+
+@Log4j
 public class GameUtils {
     static final double TO_RADIANS_CONST = Math.PI / 180.0;
 
@@ -36,9 +41,37 @@ public class GameUtils {
         return sum / nums.length;
     }
 
+    public static Double parseNum(String s) {
+        Double num;
+        try {
+            num = Double.valueOf(s);
+        } catch (Exception e) {
+            return null;
+        }
+        return num;
+    }
+
+    public static <T extends Number> int compare(Comparable<T> o1, T o2) {
+        return (o1).compareTo(o2);
+    }
+
+    public static boolean eqWithNull(Object o1, Object o2) {
+        if (o1 == null) {
+            return o2 == null;
+        }
+
+        return o1.equals(o2);
+    }
+
+    public static Point getPointByAngleAndLength(double len, double angle) {
+        double x = len * Math.cos(angle);
+        double y = len * Math.sin(angle);
+        return new Point(x, y);
+    }
+
     public static double theAverageAngle(double... nums) {
         double sum = 0.0;
-
+        log.info("Finding average angle :" + Arrays.toString(nums));
         for (double num : nums) {
             while (num < 0) num += 360.0;
 
@@ -46,6 +79,18 @@ public class GameUtils {
         }
 
         return convertAngleToNormalForm(sum / nums.length);
+    }
+
+    public static Point getValidPoint(Point... points) {
+        for (Point point : points) {
+            if (Math.abs(point.getX()) < 59.0 && Math.abs(point.getY()) < 39.0) {
+                return point;
+            }
+        }
+
+
+        log.warn("Can't find valid point!\n" + Arrays.toString(points));
+        return null;
     }
 
     public static Point theAverage(Point... points) {
@@ -64,6 +109,15 @@ public class GameUtils {
         return new Vector(p1, p2).getLength();
     }
 
+
+    public static boolean isBallCatchable(Point player, Point ball) {
+        return getLength(player, ball) <= 1.0;
+    }
+
+    public static boolean isBallCatchable(SeeMessage see) {
+        if (see == null || see.getBallPoint() == null) return false;
+        return isBallCatchable(see.getPlayerExpectedPoint(), see.getBallPoint());
+    }
 
     public static double convertAngleToNormalForm(double a) {
         while (a > 180.0) a -= 360.0;
