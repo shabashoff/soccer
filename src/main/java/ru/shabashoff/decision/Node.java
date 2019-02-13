@@ -1,8 +1,9 @@
 package ru.shabashoff.decision;
 
-import ru.shabashoff.entity.Player;
+import java.math.BigDecimal;
+import java.util.List;
 
 @FunctionalInterface
 public interface Node {
-    void run(Player player);
+    ActionType run(List<BigDecimal> vector);
 }

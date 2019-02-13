@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SenseBody extends ServerMessage {
+public class  SenseBody extends ServerMessage {
     long time;
     ViewWidth viewWidth;
     ViewQuality viewQuality;

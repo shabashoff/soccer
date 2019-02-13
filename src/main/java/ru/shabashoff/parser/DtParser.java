@@ -34,7 +34,6 @@ public class DtParser {
         predicateMap.put(">", (e, u) -> GameUtils.compare((Comparable<Number>) e, (Number) u) > 0);
         predicateMap.put("<", (e, u) -> GameUtils.compare((Comparable<Number>) e, (Number) u) < 0);
 
-
     }
 
 

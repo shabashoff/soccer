@@ -1,8 +1,10 @@
 package ru.shabashoff.decision;
 
-import ru.shabashoff.entity.Player;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.List;
 
 @FunctionalInterface
-public interface DecisionRunable {
-    boolean run(Player player);
+public interface DecisionRunable extends Serializable {
+    boolean run(List<BigDecimal> nums);
 }

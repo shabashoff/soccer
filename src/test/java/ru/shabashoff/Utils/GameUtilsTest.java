@@ -37,5 +37,35 @@ public class GameUtilsTest {
     @Test
     public void testCompare() {
         log.info(GameUtils.compare(159, 39));
+
+        IfStatement ifStatement = IfStatement.MORE;
+        IfStatement ifStatement1 = IfStatement.parse(">");
+        log.info(ifStatement1);
+    }
+}
+
+enum IfStatement {
+    MORE(">"), MORE_EQ(">="), LESS("<"), LESS_EQ("<="), EQ("=="), NON_EQ("!=");
+
+    private final String text;
+
+    IfStatement(final String text) {
+        this.text = text;
+    }
+
+    @Override
+    public String toString() {
+        return text;
+    }
+
+    public static IfStatement parse(String s) {
+
+        for (IfStatement is : IfStatement.values()) {
+            if (s.equals(is.toString())) {
+                return is;
+            }
+        }
+
+        throw new IllegalArgumentException("Can't parse string " + s);
     }
 }

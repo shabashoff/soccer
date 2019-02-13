@@ -4,27 +4,23 @@ import lombok.AccessLevel;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
-import ru.shabashoff.Utils.GameUtils;
-import ru.shabashoff.decision.Decision;
-import ru.shabashoff.decision.DecisionTree;
-import ru.shabashoff.decision.Node;
-import ru.shabashoff.entity.server.SeeMessage;
+import ru.shabashoff.decision.*;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Team {
+public class Team implements Serializable {
     final List<Player> players = new ArrayList<>();
     static int teamCounts = 1;
 
 
     public Team() {
-        this(5, "team-" + teamCounts++);
+        this(1, "team-" + teamCounts++);
     }
 
 
@@ -74,13 +70,14 @@ public class Team {
         }
     }
 
+    @SneakyThrows
     private DecisionTree createSimpleTree() {
 
-        final Point[] mainPoints = new Point[]{new Point(-40, -20), new Point(40, -20), new Point(40, 20), new Point(-40, 20)};
+        /*final Point[] mainPoints = new Point[]{new Point(-40, -20), new Point(40, -20), new Point(40, 20), new Point(-40, 20)};
 
         final double minLen = 10.0;
 
-        class Wrapper {
+        class Wrapper implements Serializable {
             private int n = 1;
 
             public int getN() {
@@ -136,8 +133,36 @@ public class Team {
 
         Decision findOrGo = new Decision(decisionCatchGo, findingBall, p -> p.getSee() != null && p.getSee().getBallPoint() != null);
 
-        Decision kickOrOther = new Decision(ballActions,findOrGo,  p -> catched.get());
+        Decision kickOrOther = new Decision(ballActions, findOrGo, p -> catched.get());
 
-        return new DecisionTree(kickOrOther);
+        DecisionTree tree = new DecisionTree(kickOrOther);
+        FileOutputStream fStream = new FileOutputStream("./tree.dt");
+        ObjectOutputStream oos = new ObjectOutputStream(fStream);
+        oos.writeObject(tree);
+        oos.flush();
+        oos.close();
+        fStream.flush();
+        fStream.close();
+
+        FileInputStream inputStream = new FileInputStream("./tree.dt");
+        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+
+        */
+
+        Decision ifCanCatch = new Decision(at(ActionType.CATCH), at(ActionType.DASH), 5, IfStatement.LESS_EQ, BigDecimal.valueOf(1.5));
+
+        Decision ifSmallAngle = new Decision(ifCanCatch, at(ActionType.GO_TO_BALL), 6, IfStatement.LESS_EQ, BigDecimal.valueOf(45));
+
+        Decision ifSeeBall = new Decision(ifSmallAngle, at(ActionType.ROTATE_RIGHT), 3, IfStatement.NON_EQ, null);//dont see ball
+
+        Decision ifBallCatched = new Decision(at(ActionType.KICK_IN_GATE), ifSeeBall, 7, IfStatement.MORE, BigDecimal.valueOf(0));
+
+
+        return new DecisionTree(ifBallCatched);
     }
+
+    private Action at(ActionType a) {
+        return new Action(a);
+    }
+
 }

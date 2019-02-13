@@ -10,11 +10,15 @@ import ru.shabashoff.entity.server.HearMessage;
 import ru.shabashoff.entity.server.SeeMessage;
 import ru.shabashoff.entity.server.SenseBody;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 @Log4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Player extends RCSSServerClient {
+public class Player extends RCSSServerClient implements Serializable {
     final int id;
     final String teamName;
 
@@ -33,6 +37,8 @@ public class Player extends RCSSServerClient {
     final DecisionTree tree;
 
     final Point goaliePoint = new Point(54, 0);
+
+    int ballCatchable = 0;
 
     public Player(int id, String teamName, DecisionTree tree) {
         super(teamName);
@@ -55,16 +61,43 @@ public class Player extends RCSSServerClient {
 
     public void catchBall(int angle) {
         sendMessage(MessageFormat.format("(catch {0})", angle));
+        ballCatchable = 2;
     }
 
     public void kick(int power, int dicrection) {
         sendMessage(MessageFormat.format("(kick {0} {1})", power, dicrection));
+        ballCatchable = 0;
     }
 
     public void rotateToGoal() {
         synchronized (seeMonitor) {
             turn(-(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint)));
         }
+    }
+
+    public void catchAction() {
+        if (getBallPoint() != null && getExpectedPoint() != null) {
+            catchBall(-(int) GameUtils.calcVecAngle(getExpectedPoint(), getBallPoint())); //TODO
+        }else{
+            catchBall(0);
+        }
+    }
+
+    public void dashAction() {
+        dash(50); //TODO
+    }
+
+    public void kickInGateAction() {
+        kick(50, -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))); //TODO
+    }
+
+    public void rotateRightAction() {
+        turn(15); //TODO
+    }
+
+    public void goToBallAction() {
+        Point ballPoint = getBallPoint();
+        goTo(ballPoint.getX(), ballPoint.getY()); //TODO
     }
 
     public void action() {
@@ -115,6 +148,8 @@ public class Player extends RCSSServerClient {
             }
         }
         action();
+
+        if (ballCatchable != 0) ballCatchable--;
     }
 
     public SenseBody getSense() {
@@ -126,7 +161,7 @@ public class Player extends RCSSServerClient {
     }
 
     public void goTo(double x, double y) {
-        double minAngle = 20;
+        double minAngle = 35;
 
         Vector vector = new Vector(getExpectedPoint(), new Point(x, y));
 
@@ -151,4 +186,40 @@ public class Player extends RCSSServerClient {
         }
 
     }
+
+    public List<BigDecimal> getSnapshot() {
+        List<BigDecimal> args = new ArrayList<>();
+
+        Point expectedPoint = getExpectedPoint();
+        if (expectedPoint != null) {
+            args.add(BigDecimal.valueOf(expectedPoint.getX()));
+            args.add(BigDecimal.valueOf(expectedPoint.getY()));
+        } else {
+            args.add(null);
+            args.add(null);
+        }
+
+        args.add(BigDecimal.valueOf(getExpectedAngle()));
+        Point ballPoint = getBallPoint();
+        if (ballPoint != null) {
+            args.add(BigDecimal.valueOf(ballPoint.getX()));
+            args.add(BigDecimal.valueOf(ballPoint.getY()));
+        } else {
+            args.add(null);
+            args.add(null);
+        }
+
+        if (ballPoint != null && expectedPoint != null) {
+            args.add(BigDecimal.valueOf(GameUtils.getLength(expectedPoint, ballPoint)));
+            args.add(BigDecimal.valueOf(GameUtils.calcVecAngle(expectedPoint, ballPoint)));
+        } else {
+            args.add(null);
+            args.add(null);
+        }
+
+        args.add(BigDecimal.valueOf(ballCatchable));
+
+        return args;
+    }
+
 }
