@@ -149,11 +149,10 @@ public class Team implements Serializable {
 
         */
 
-        Decision ifCanCatch = new Decision(at(ActionType.CATCH), at(ActionType.DASH), 5, IfStatement.LESS_EQ, BigDecimal.valueOf(1.5));
 
-        Decision ifSmallAngle = new Decision(ifCanCatch, at(ActionType.GO_TO_BALL), 6, IfStatement.LESS_EQ, BigDecimal.valueOf(45));
+        Decision ifCanCatch = new Decision(at(ActionType.CATCH), at(ActionType.GO_TO_BALL), 5, IfStatement.LESS_EQ, BigDecimal.valueOf(1.5));
 
-        Decision ifSeeBall = new Decision(ifSmallAngle, at(ActionType.ROTATE_RIGHT), 3, IfStatement.NON_EQ, null);//dont see ball
+        Decision ifSeeBall = new Decision(ifCanCatch, at(ActionType.ROTATE_RIGHT), 3, IfStatement.NON_EQ, null);//dont see ball
 
         Decision ifBallCatched = new Decision(at(ActionType.KICK_IN_GATE), ifSeeBall, 7, IfStatement.MORE, BigDecimal.valueOf(0));
 
