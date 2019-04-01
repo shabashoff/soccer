@@ -42,18 +42,34 @@ public class DecisionTree implements Serializable {
         int[] clsR = new int[classes.length];
         PriorityQueue<TrainingPair> sorted = new PriorityQueue<>(Comparator.comparing(a -> a.val));
 
+        BigDecimal entL;
+        BigDecimal entR;
+
+        BigDecimal sizeClasses = BigDecimal.valueOf(classes.length);
+
         for (int i = 0; i < vector[0].length; i++) {
             sorted.clear();
 
             Arrays.fill(clsL, 0);
             Arrays.fill(clsR, 0);
 
+            entL = new BigDecimal(0);
+            entR = new BigDecimal(0);
+
             for (int j = 0; j < vector.length; j++) {
                 sorted.add(new TrainingPair(vector[j][i], j));
                 clsL[j]++;
             }
 
-            for (TrainingPair trainingPair : sorted) {
+            for (int i1 : clsL) {
+                if (i1 != 0) {
+                    BigDecimal divide = BigDecimal.valueOf(i1).divide(sizeClasses, 5, RoundingMode.CEILING);
+                    entL = entL.add(divide.multiply(GameUtils.log2(divide)));
+                }
+            }
+
+
+            for (TrainingPair tp : sorted) {
 
             }
 
