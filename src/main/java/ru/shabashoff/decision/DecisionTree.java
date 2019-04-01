@@ -1,7 +1,6 @@
 package ru.shabashoff.decision;
 
-import lombok.AccessLevel;
-import lombok.Getter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import ru.shabashoff.Utils.GameUtils;
 import ru.shabashoff.entity.Player;
@@ -9,14 +8,14 @@ import ru.shabashoff.entity.Player;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class DecisionTree implements Serializable {
     static final long serialVersionUID = 1L;
+
+    static final long SPLIT_COUNT = 10;
 
     @Getter
     Node head;
@@ -32,6 +31,36 @@ public class DecisionTree implements Serializable {
 
     public void train(List<List<BigDecimal>> vector, List<ActionType> classes) {
         BigDecimal entropy = calcEntropy(a -> true, vector, classes);
+
+
+    }
+
+    public void train(BigDecimal[][] vector, ActionType[] classes) {
+        assert vector.length == classes.length;
+
+        int[] clsL = new int[classes.length];
+        int[] clsR = new int[classes.length];
+        PriorityQueue<TrainingPair> sorted = new PriorityQueue<>(Comparator.comparing(a -> a.val));
+
+        for (int i = 0; i < vector[0].length; i++) {
+            sorted.clear();
+
+            Arrays.fill(clsL, 0);
+            Arrays.fill(clsR, 0);
+
+            for (int j = 0; j < vector.length; j++) {
+                sorted.add(new TrainingPair(vector[j][i], j));
+                clsL[j]++;
+            }
+
+            for (TrainingPair trainingPair : sorted) {
+
+            }
+
+
+        }
+
+
     }
 
     public BigDecimal calcEntropy(Predicate<List<BigDecimal>> pred, List<List<BigDecimal>> vector, List<ActionType> classes) {
@@ -42,8 +71,7 @@ public class DecisionTree implements Serializable {
             if (pred.test(vector.get(i))) {
                 if (map.containsKey(a)) {
                     map.put(a, map.get(a) + 1);
-                }
-                else {
+                } else {
                     map.put(a, 1);
                 }
             }
@@ -59,6 +87,13 @@ public class DecisionTree implements Serializable {
         }
 
         return sum;
+    }
+
+    @RequiredArgsConstructor
+    static class TrainingPair {
+        final BigDecimal val;
+        final int pos;
+        BigDecimal gain;
     }
 
 }
