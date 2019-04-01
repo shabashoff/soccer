@@ -5,6 +5,7 @@ import ru.shabashoff.entity.Point;
 import ru.shabashoff.entity.Vector;
 import ru.shabashoff.entity.server.SeeMessage;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 
 @Log4j
@@ -124,5 +125,9 @@ public class GameUtils {
         while (a < -180.0) a += 360.0;
 
         return a;
+    }
+
+    public static BigDecimal log2(BigDecimal val) {
+        return BigDecimal.valueOf(Math.log(val.doubleValue()) / Math.log(2));
     }
 }

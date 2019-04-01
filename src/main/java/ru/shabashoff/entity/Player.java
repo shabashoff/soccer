@@ -78,7 +78,8 @@ public class Player extends RCSSServerClient implements Serializable {
     public void catchAction() {
         if (getBallPoint() != null && getExpectedPoint() != null) {
             catchBall(-(int) GameUtils.calcVecAngle(getExpectedPoint(), getBallPoint())); //TODO
-        }else{
+        }
+        else {
             catchBall(0);
         }
     }
@@ -194,7 +195,8 @@ public class Player extends RCSSServerClient implements Serializable {
         if (expectedPoint != null) {
             args.add(BigDecimal.valueOf(expectedPoint.getX()));
             args.add(BigDecimal.valueOf(expectedPoint.getY()));
-        } else {
+        }
+        else {
             args.add(null);
             args.add(null);
         }
@@ -204,7 +206,8 @@ public class Player extends RCSSServerClient implements Serializable {
         if (ballPoint != null) {
             args.add(BigDecimal.valueOf(ballPoint.getX()));
             args.add(BigDecimal.valueOf(ballPoint.getY()));
-        } else {
+        }
+        else {
             args.add(null);
             args.add(null);
         }
@@ -212,7 +215,8 @@ public class Player extends RCSSServerClient implements Serializable {
         if (ballPoint != null && expectedPoint != null) {
             args.add(BigDecimal.valueOf(GameUtils.getLength(expectedPoint, ballPoint)));
             args.add(BigDecimal.valueOf(GameUtils.calcVecAngle(expectedPoint, ballPoint)));
-        } else {
+        }
+        else {
             args.add(null);
             args.add(null);
         }

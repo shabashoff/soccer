@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Log4j
 public class TestDecisionTree {
@@ -58,8 +60,32 @@ public class TestDecisionTree {
         out.close();
     }
 
+    @Test
+    public void testEntropyCalc() {
+
+        ArrayList<ActionType> at = new ArrayList<ActionType>();
+        List<List<BigDecimal>> vector = new ArrayList<List<BigDecimal>>();
+
+        for (int i = 0; i < 9; i++) {
+            at.add(ActionType.KICK_IN_GATE);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            at.add(ActionType.GO_TO_BALL);
+        }
+
+        for (int i = 0; i < 14; i++) {
+            vector.add(null);
+        }
+
+        DecisionTree dt = new DecisionTree(null);
+        BigDecimal entropy = dt.calcEntropy(a -> true, vector, at);
+
+        Assert.assertEquals(0.94, entropy.doubleValue(), 0.01);
+    }
+
+
     private Action at(ActionType a) {
         return new Action(a);
     }
-
 }
