@@ -31,12 +31,12 @@ public class Decision implements Node, Serializable {
         this.val = val;
     }
 
-    private boolean check(List<BigDecimal> nums) {
-        return ifStmt.getFunc().apply(nums.get(indexOfParameter), val);
+    private boolean check(BigDecimal[] nums) {
+        return ifStmt.getFunc().apply(nums[indexOfParameter], val);
     }
 
     @Override
-    public ActionType run(List<BigDecimal> vector) {
+    public int run(BigDecimal[] vector) {
         if (decisionRunableNew.run(vector)) return left.run(vector);
         else return right.run(vector);
     }

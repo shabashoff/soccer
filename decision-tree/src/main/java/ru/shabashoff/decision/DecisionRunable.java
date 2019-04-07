@@ -6,5 +6,5 @@ import java.util.List;
 
 @FunctionalInterface
 public interface DecisionRunable extends Serializable {
-    boolean run(List<BigDecimal> nums);
+    boolean run(BigDecimal[] nums);
 }

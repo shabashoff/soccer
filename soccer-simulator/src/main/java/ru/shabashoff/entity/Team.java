@@ -161,7 +161,7 @@ public class Team implements Serializable {
     }
 
     private Action at(ActionType a) {
-        return new Action(a);
+        return new Action(a.getN());
     }
 
 }

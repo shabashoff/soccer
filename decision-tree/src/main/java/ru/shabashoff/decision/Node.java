@@ -5,5 +5,5 @@ import java.util.List;
 
 @FunctionalInterface
 public interface Node {
-    ActionType run(List<BigDecimal> vector);
+    int run(BigDecimal[] vector);
 }

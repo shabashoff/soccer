@@ -14,9 +14,9 @@ import java.util.List;
 public class Action implements Node, Serializable {
     static final long serialVersionUID = 1L;
 
-    ActionType type;
+    int type;
 
-    public ActionType run(List<BigDecimal> player) {
+    public int run(BigDecimal[] player) {
         return type;
     }
 
@@ -25,7 +25,7 @@ public class Action implements Node, Serializable {
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        type = (ActionType) in.readObject();
+        type = (int) in.readObject();
     }
 
 
