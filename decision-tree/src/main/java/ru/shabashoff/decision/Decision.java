@@ -2,21 +2,22 @@ package ru.shabashoff.decision;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.List;
 
 @Data
+@ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Decision implements Node, Serializable {
 
     static final long serialVersionUID = 1L;
 
-    DecisionRunable decisionRunableNew = this::check;
+    DecisionRunnable decisionRunnableNew = this::check;
     Node left, right;
 
     int indexOfParameter;
@@ -37,7 +38,7 @@ public class Decision implements Node, Serializable {
 
     @Override
     public int run(BigDecimal[] vector) {
-        if (decisionRunableNew.run(vector)) return left.run(vector);
+        if (decisionRunnableNew.run(vector)) return left.run(vector);
         else return right.run(vector);
     }
 

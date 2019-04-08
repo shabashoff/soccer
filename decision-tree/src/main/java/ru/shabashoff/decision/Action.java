@@ -2,6 +2,7 @@ package ru.shabashoff.decision;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.ToString;
 
 import java.io.IOException;
 import java.io.ObjectStreamException;
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
+@ToString
 @AllArgsConstructor
 public class Action implements Node, Serializable {
     static final long serialVersionUID = 1L;

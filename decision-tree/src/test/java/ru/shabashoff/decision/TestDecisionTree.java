@@ -44,7 +44,7 @@ public class TestDecisionTree {
 
     @Test
     public void testTrain() {
-        BigDecimal[][] vector = new BigDecimal[14][1];
+        BigDecimal[][] vector = new BigDecimal[14][2];
         int[] classes = new int[14];
 
         classes[0] = 0;//No
@@ -77,9 +77,31 @@ public class TestDecisionTree {
         vector[12][0] = BigDecimal.valueOf(75);
         vector[13][0] = BigDecimal.valueOf(80);
 
-        List<DecisionTree.TrainingPair> train = DecisionTree.getTrainingPair(vector, classes, 2, 0);
-        for (DecisionTree.TrainingPair trainingPair : train) {
-            System.out.println(trainingPair);
+        vector[0][1] = BigDecimal.valueOf(85);
+        vector[1][1] = BigDecimal.valueOf(80);
+        vector[2][1] = BigDecimal.valueOf(83);
+        vector[3][1] = BigDecimal.valueOf(70);
+        vector[4][1] = BigDecimal.valueOf(68);
+        vector[5][1] = BigDecimal.valueOf(65);
+        vector[6][1] = BigDecimal.valueOf(64);
+        vector[7][1] = BigDecimal.valueOf(72);
+        vector[8][1] = BigDecimal.valueOf(69);
+        vector[9][1] = BigDecimal.valueOf(75);
+        vector[10][1] = BigDecimal.valueOf(75);
+        vector[11][1] = BigDecimal.valueOf(72);
+        vector[12][1] = BigDecimal.valueOf(81);
+        vector[13][1] = BigDecimal.valueOf(71);
+
+        DecisionTree dt = C45.trainModel(vector, classes);
+
+        int right = 0;
+
+        for (int i = 0; i < vector.length; i++) {
+            if (dt.action(vector[i]) == classes[i]) right++;
         }
+
+
+        System.out.println(dt);
+        System.out.println("Accuracy=" + (double)right/(double)vector.length);
     }
 }

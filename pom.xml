@@ -16,5 +16,6 @@
     <modules>
         <module>soccer-simulator</module>
         <module>decision-tree</module>
+        <module>server-simulator</module>
     </modules>
 </project>
