@@ -24,6 +24,6 @@ public enum MessageType {
             case "error":
                 return ERROR;
         }
-        throw new IllegalArgumentException("Can't parse server message type: " + type);
+        throw new IllegalArgumentException("Can't parse monitor message type: " + type);
     }
 }

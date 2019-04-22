@@ -20,7 +20,7 @@ public class Team implements Serializable {
 
 
     public Team() {
-        this(1, "team-" + teamCounts++);
+        this(11, "team-" + teamCounts++);
     }
 
 

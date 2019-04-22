@@ -6,7 +6,7 @@ import ru.shabashoff.entity.Player;
 import java.util.function.Consumer;
 
 @Getter
-public enum ActionType {
+public enum ActionType  {
     CATCH(Player::catchAction, 0),
     DASH(Player::dashAction, 1),
     KICK_IN_GATE(Player::kickInGateAction, 2),
