@@ -4,16 +4,19 @@ import lombok.SneakyThrows;
 import org.junit.Test;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.util.*;
 
+@SuppressWarnings("ALL")
 public class LogToTrain {
 
     @Test
-    public void test() throws FileNotFoundException {
+    public void test() {
 
         Set<TrainAction> acts = getTrainSample("../ts.rcl").acts;
+
+        System.out.println(acts);
+
         HashMap<String, List<List<BigDecimal>>> st = new HashMap<>();
 
         for (TrainAction act : acts) {
@@ -75,6 +78,7 @@ public class LogToTrain {
                         bb.add(new BigDecimal(ls.get(i)));
                     }
 
+//                    TrainAction ta = convertToNormalValue(new TrainAction(ls.get(0), bb));
                     TrainAction ta = new TrainAction(ls.get(0), bb);
 
                     if (pars.containsKey(pt)) {
@@ -148,6 +152,60 @@ public class LogToTrain {
         }
 
         return bls;
+    }
+
+    private TrainAction convertToNormalValue(TrainAction act) {
+
+        HashMap<String, List<TrainAction>> sm = fillActions();
+
+        List<BigDecimal> params = act.params;
+
+        BigDecimal delta;
+        BigDecimal minDelta = BigDecimal.valueOf(Long.MAX_VALUE);
+        int n = -1;
+
+        List<TrainAction> smq = sm.get(act.action);
+        for (int i = 0; i < smq.size(); i++) {
+            delta = BigDecimal.ZERO;
+            List<BigDecimal> get1 = smq.get(i).params;
+            for (int j = 0; j < get1.size(); j++) {
+                BigDecimal v = get1.get(j);
+                BigDecimal q = params.get(j);
+                delta = delta.add(v.subtract(q).abs());
+            }
+
+            if (delta.compareTo(minDelta) < 0) {
+                minDelta = delta;
+                n = i;
+            }
+        }
+
+        if (n == -1) {
+            return act;
+        }
+
+        return smq.get(n);
+    }
+
+    private HashMap<String, List<TrainAction>> fillActions() {
+        HashMap<String, List<TrainAction>> mp = new HashMap<>();
+
+        float cur = -180f;
+        float delta = 36f;
+
+        for (int i = 0; i < 10; i++) {
+            mp.put("turn", Arrays.asList(new TrainAction("turn", Arrays.asList(bd(cur)))));
+            mp.put("turn_neck", Arrays.asList(new TrainAction("turn_neck", Arrays.asList(bd(cur)))));
+            cur += delta;
+        }
+
+        mp.put("turn", Arrays.asList(new TrainAction("turn", Arrays.asList(bd(34.3662f)))));
+
+        return mp;
+    }
+
+    private static BigDecimal bd(float f) {
+        return BigDecimal.valueOf(f);
     }
 
     private static boolean isNumeric(String strNum) {
@@ -254,21 +312,27 @@ public class LogToTrain {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             TrainAction that = (TrainAction) o;
-            return action.equals(that.action) &&
-                    params.equals(that.params);
+            return action.equals(that.action)
+                    && params.equals(that.params);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(action, params);
+            return Objects.hash(action, params);//
         }
 
         @Override
         public String toString() {
-            return "TrainAction{" +
-                    "action='" + action + '\'' +
-                    ", params=" + params +
-                    '}';
+            StringBuilder sb = new StringBuilder();
+            sb.append("Arrays.asList(new TrainAction(\"").append(action).append("\",Arrays.asList(");
+            for (BigDecimal p : params) {
+                sb.append("bd(").append(p.floatValue()).append("f)),");
+            }
+
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("))");
+
+            return "(\"" + action + "\"," + sb + ")";
         }
     }
 
