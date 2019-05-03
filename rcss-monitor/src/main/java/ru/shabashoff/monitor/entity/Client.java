@@ -1,4 +1,4 @@
-package ru.shabashoff.server.entity;
+package ru.shabashoff.monitor.entity;
 
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -7,7 +7,6 @@ import lombok.extern.log4j.Log4j;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.concurrent.Executors;
 @SuppressWarnings("ALL")
 public class Client {
     private final String SERVER_HOST = "localhost";
-    private final int SERVER_PORT = 6011;
+    private final int SERVER_PORT = 6000;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -45,31 +44,32 @@ public class Client {
         restartServerListener();
     }
 
-    public void addClientMessage(String message) {
-        log.info("Add server message:" + message);
-        messageFromClientQueue.add(message);
+    public void addClientMessage(byte[] bytes) {
+        String msg = new String(bytes);
 
-        sendClientMessage(message);
+        log.info("Add client message:" + msg);
+        messageFromClientQueue.add(msg);
+
+        sendClientMessage(bytes);
     }
 
-    private void addServerMessage(String message) {
-        log.info("Add server message:" + message);
-        messageFromServerQueue.add(message);
+    private void addServerMessage(byte[] bytes) {
+        String s = new String(bytes);
+        log.info("Add monitor message:" + s);
+        messageFromServerQueue.add(s);
 
-        sendServerMessage(message);
+        sendServerMessage(bytes);
     }
 
     @SneakyThrows
-    public void sendClientMessage(String msg) {
-        byte[] bytes = msg.getBytes();
+    public void sendClientMessage(byte[] bytes) {
         DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, serverAddress, SERVER_PORT);
 
         socket.send(sendPacket);
     }
 
     @SneakyThrows
-    private void sendServerMessage(String msg) {
-        byte[] bytes = msg.getBytes();
+    private void sendServerMessage(byte[] bytes) {
         DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, clientAddress, clientPort);
 
         socket.send(sendPacket);
@@ -80,14 +80,12 @@ public class Client {
         executor.submit(() -> {
             try {
                 while (true) {
-                    byte[] bytes = new byte[2048];
+                    byte[] bytes = new byte[8192];
                     DatagramPacket getPacket = new DatagramPacket(bytes, bytes.length);
 
                     socket.receive(getPacket);
 
-                    String response = new String(getPacket.getData(), StandardCharsets.UTF_8).trim();
-
-                    addServerMessage(response);
+                    addServerMessage(getPacket.getData());
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();

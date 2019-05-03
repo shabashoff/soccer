@@ -1,4 +1,4 @@
-package ru.shabashoff.server.entity;
+package ru.shabashoff.monitor.entity;
 
 import lombok.extern.log4j.Log4j;
 
@@ -32,7 +32,7 @@ public class Server {
         executor.execute(() -> {
             try {
                 while (true) {
-                    byte[] bytes = new byte[2048];
+                    byte[] bytes = new byte[8192];
                     DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
                     InetAddress address = packet.getAddress();
 
@@ -41,7 +41,7 @@ public class Server {
                     String response = new String(packet.getData(), StandardCharsets.UTF_8).trim();
                     log.info("Message from client: " + response);
 
-                    onNewMessageFromClient(response, packet.getAddress(), packet.getPort());
+                    onNewMessageFromClient(bytes, packet.getAddress(), packet.getPort());
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -50,13 +50,15 @@ public class Server {
         });
     }
 
-    private void onNewMessageFromClient(String msg, InetAddress addr, int port) {
+    private void onNewMessageFromClient(byte[] bytes, InetAddress addr, int port) {
         String key = addr.toString() + port;
 
-        if (clients.containsKey(key)) clients.get(key).addClientMessage(msg);
+        String msg = new String(bytes);
+
+        if (clients.containsKey(key)) clients.get(key).addClientMessage(bytes);
         else {
             Client cl = new Client(addr, port);
-            cl.addClientMessage(msg);
+            cl.addClientMessage(bytes);
 
             clients.put(key, cl);
         }

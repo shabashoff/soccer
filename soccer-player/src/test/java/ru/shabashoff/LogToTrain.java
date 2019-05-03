@@ -2,6 +2,8 @@ package ru.shabashoff;
 
 import lombok.SneakyThrows;
 import org.junit.Test;
+import ru.shabashoff.decision.C45;
+import ru.shabashoff.decision.DecisionTree;
 
 import java.io.FileInputStream;
 import java.math.BigDecimal;
@@ -11,15 +13,96 @@ import java.util.*;
 public class LogToTrain {
 
     @Test
+    public void tets2() {
+        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors("../ts.rcg");
+        TrainSample trainSample = getTrainSample("../ts.rcl");
+        Map<PlayerTime, List<TrainAction>> ts = trainSample.pars;
+
+        BigDecimal[][] vect = new BigDecimal[ts.size()][];
+        int[] clss = new int[ts.size()];
+        int i = 0;
+
+        HashMap<String, Integer> st = new HashMap<>();
+
+        for (Map.Entry<PlayerTime, List<TrainAction>> pt : ts.entrySet()) {
+            PlayerTime key = pt.getKey();
+            List<BigDecimal> bd = tv.get(key);
+            if (bd != null) {
+                System.out.println("player time is null:" + key);
+            } else {
+                continue;
+
+            }
+            vect[i] = new BigDecimal[bd.size()];
+            bd.toArray(vect[i]);
+
+            i++;
+        }
+
+        i = 0;
+        int n = 0;
+        HashMap<String, Integer> ss = new HashMap<>();
+
+        for (TrainAction act : trainSample.acts) {
+            if (ss.containsKey(act.action)) {
+                clss[i] = ss.get(act.action);
+            } else {
+                ss.put(act.action, n);
+                clss[i] = n;
+                n++;
+            }
+
+            i++;
+        }
+
+        DecisionTree dt = C45.trainModel(vect, clss);
+        System.out.println(dt);
+    }
+
+
+    @Test
     public void test() {
 
-        Set<TrainAction> acts = getTrainSample("../ts.rcl").acts;
+        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors("../ts.rcg");
 
+
+        TrainSample ts = getTrainSample("../ts.rcl");
+        Set<TrainAction> acts = ts.acts;
+        Map<PlayerTime, List<TrainAction>> pars = ts.pars;
         System.out.println(acts);
 
         HashMap<String, List<List<BigDecimal>>> st = new HashMap<>();
 
+        BigDecimal[][] vect = new BigDecimal[acts.size()][];
+        int[] clss = new int[acts.size()];
+
+        int i = 0;
+
         for (TrainAction act : acts) {
+            vect[i] = new BigDecimal[act.params.size()];
+            act.params.toArray(vect[i]);
+            i++;
+        }
+
+        i = 0;
+        int n = 0;
+        HashMap<String, Integer> ss = new HashMap<>();
+
+        for (TrainAction act : acts) {
+            if (ss.containsKey(act.action)) {
+                clss[i] = ss.get(act.action);
+            } else {
+                ss.put(act.action, n);
+                clss[i] = n;
+                n++;
+            }
+
+            i++;
+        }
+
+
+
+        /*for (TrainAction act : acts) {
             if (st.containsKey(act.action)) {
                 st.get(act.action).add(act.params);
             } else {
@@ -27,9 +110,12 @@ public class LogToTrain {
                 lst.add(act.params);
                 st.put(act.action, lst);
             }
-        }
+        }*/
 
         System.out.println(st);
+
+        DecisionTree dt = C45.trainModel(vect, clss);
+        System.out.println(dt);
     }
 
 
@@ -78,8 +164,8 @@ public class LogToTrain {
                         bb.add(new BigDecimal(ls.get(i)));
                     }
 
-//                    TrainAction ta = convertToNormalValue(new TrainAction(ls.get(0), bb));
-                    TrainAction ta = new TrainAction(ls.get(0), bb);
+                    TrainAction ta = convertToNormalValue(new TrainAction(ls.get(0), bb));
+                    //TrainAction ta = new TrainAction(ls.get(0), bb);
 
                     if (pars.containsKey(pt)) {
                         pars.get(pt).add(ta);
@@ -165,6 +251,11 @@ public class LogToTrain {
         int n = -1;
 
         List<TrainAction> smq = sm.get(act.action);
+
+        if (smq == null) {
+            return act;
+        }
+
         for (int i = 0; i < smq.size(); i++) {
             delta = BigDecimal.ZERO;
             List<BigDecimal> get1 = smq.get(i).params;

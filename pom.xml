@@ -17,5 +17,6 @@
         <module>soccer-player</module>
         <module>decision-tree</module>
         <module>server-simulator</module>
+        <module>rcss-monitor</module>
     </modules>
 </project>

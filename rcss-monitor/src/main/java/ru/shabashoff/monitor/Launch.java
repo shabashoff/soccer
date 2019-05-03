@@ -1,12 +1,13 @@
-package ru.shabashoff.server;
+package ru.shabashoff.monitor;
 
 import lombok.SneakyThrows;
-import ru.shabashoff.server.entity.Server;
+import ru.shabashoff.monitor.entity.Monitor;
+import ru.shabashoff.monitor.entity.Server;
 
 public class Launch {
     @SneakyThrows
     public static void main(String[] args) {
-        Server server = new Server(6000);
+        Monitor mnt = new Monitor();
 
         Thread.sleep(1_000_000);
     }

@@ -27,6 +27,11 @@ public class C45 {
 
     @SneakyThrows
     public static DecisionTree trainModel(BigDecimal[][] vector, int[] classes) {
+
+        if (vector.length != classes.length) {
+            throw new IllegalArgumentException("Sizes is illegal");
+        }
+
         int[] ints = new int[vector[0].length];
 
         Arrays.fill(ints, COUNT_SEP);
