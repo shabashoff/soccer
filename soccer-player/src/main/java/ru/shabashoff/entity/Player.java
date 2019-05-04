@@ -1,21 +1,20 @@
 package ru.shabashoff.entity;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
-import ru.shabashoff.Utils.GameUtils;
 import ru.shabashoff.decision.ActionType;
 import ru.shabashoff.decision.DecisionTree;
 import ru.shabashoff.entity.server.ErrorMessage;
 import ru.shabashoff.entity.server.HearMessage;
 import ru.shabashoff.entity.server.SeeMessage;
 import ru.shabashoff.entity.server.SenseBody;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
+import ru.shabashoff.utils.GameUtils;
 
 @Log4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -72,14 +71,16 @@ public class Player extends RCSSServerClient implements Serializable {
 
     public void rotateToGoal() {
         synchronized (seeMonitor) {
-            turn(-(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint)));
+            turn(-(int) (see.getPlayerExpectedAngle() -
+                GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint)));
         }
     }
 
     public void catchAction() {
         if (getBallPoint() != null && getExpectedPoint() != null) {
             catchBall(-(int) GameUtils.calcVecAngle(getExpectedPoint(), getBallPoint())); //TODO
-        } else {
+        }
+        else {
             catchBall(0);
         }
     }
@@ -89,7 +90,10 @@ public class Player extends RCSSServerClient implements Serializable {
     }
 
     public void kickInGateAction() {
-        kick(50, -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))); //TODO
+        kick(
+            50,
+            -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))
+        ); //TODO
     }
 
     public void rotateRightAction() {
@@ -150,7 +154,9 @@ public class Player extends RCSSServerClient implements Serializable {
         }
         action();
 
-        if (ballCatchable != 0) ballCatchable--;
+        if (ballCatchable != 0) {
+            ballCatchable--;
+        }
     }
 
     public SenseBody getSense() {
@@ -180,7 +186,8 @@ public class Player extends RCSSServerClient implements Serializable {
 
         if (minAngle > Math.abs(angle)) {
             dash(50);
-        } else {
+        }
+        else {
             turn((int) angle);
 
         }
@@ -192,28 +199,18 @@ public class Player extends RCSSServerClient implements Serializable {
         List<BigDecimal> args = new ArrayList<>();
 
         Point expectedPoint = getExpectedPoint();
-        if (expectedPoint != null) {
-            args.add(BigDecimal.valueOf(expectedPoint.getX()));
-            args.add(BigDecimal.valueOf(expectedPoint.getY()));
-        } else {
-            args.add(null);
-            args.add(null);
-        }
 
+        addPoint(args, expectedPoint);
         args.add(BigDecimal.valueOf(getExpectedAngle()));
+
         Point ballPoint = getBallPoint();
-        if (ballPoint != null) {
-            args.add(BigDecimal.valueOf(ballPoint.getX()));
-            args.add(BigDecimal.valueOf(ballPoint.getY()));
-        } else {
-            args.add(null);
-            args.add(null);
-        }
+        addPoint(args, expectedPoint);
 
         if (ballPoint != null && expectedPoint != null) {
             args.add(BigDecimal.valueOf(GameUtils.getLength(expectedPoint, ballPoint)));
             args.add(BigDecimal.valueOf(GameUtils.calcVecAngle(expectedPoint, ballPoint)));
-        } else {
+        }
+        else {
             args.add(null);
             args.add(null);
         }
@@ -225,4 +222,14 @@ public class Player extends RCSSServerClient implements Serializable {
         return bd;
     }
 
+    private void addPoint(List<BigDecimal> args, Point pt) {
+        if (pt != null) {
+            args.add(BigDecimal.valueOf(pt.getX()));
+            args.add(BigDecimal.valueOf(pt.getY()));
+        }
+        else {
+            args.add(null);
+            args.add(null);
+        }
+    }
 }

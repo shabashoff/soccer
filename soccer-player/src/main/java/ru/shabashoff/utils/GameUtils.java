@@ -1,12 +1,11 @@
-package ru.shabashoff.Utils;
+package ru.shabashoff.utils;
 
+import java.math.BigDecimal;
+import java.util.Arrays;
 import lombok.extern.log4j.Log4j;
 import ru.shabashoff.entity.Point;
 import ru.shabashoff.entity.Vector;
 import ru.shabashoff.entity.server.SeeMessage;
-
-import java.math.BigDecimal;
-import java.util.Arrays;
 
 @Log4j
 public class GameUtils {
@@ -129,5 +128,9 @@ public class GameUtils {
 
     public static BigDecimal log2(BigDecimal val) {
         return BigDecimal.valueOf(Math.log(val.doubleValue()) / Math.log(2));
+    }
+
+    public static BigDecimal bd(double d){
+
     }
 }

@@ -1,16 +1,15 @@
 package ru.shabashoff.entity;
 
-import lombok.extern.log4j.Log4j;
-import org.junit.Assert;
-import org.junit.Test;
-import ru.shabashoff.Utils.GameUtils;
-import ru.shabashoff.entity.server.GameObject;
-import ru.shabashoff.entity.server.SeeMessage;
-import ru.shabashoff.parser.MsgParser;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.log4j.Log4j;
+import org.junit.Assert;
+import org.junit.Test;
+import ru.shabashoff.entity.server.GameObject;
+import ru.shabashoff.entity.server.SeeMessage;
+import ru.shabashoff.parser.MsgParser;
+import ru.shabashoff.utils.GameUtils;
 
 @Log4j
 public class SeeMessageTest {

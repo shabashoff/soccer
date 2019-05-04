@@ -1,9 +1,8 @@
-package ru.shabashoff.Utils;
-
-import lombok.extern.log4j.Log4j;
+package ru.shabashoff.utils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import lombok.extern.log4j.Log4j;
 
 @Log4j
 public class TreeUtils {

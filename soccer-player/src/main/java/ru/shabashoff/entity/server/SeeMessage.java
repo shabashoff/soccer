@@ -1,17 +1,16 @@
 package ru.shabashoff.entity.server;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.log4j.Log4j;
-import ru.shabashoff.Utils.GameUtils;
-import ru.shabashoff.entity.Point;
-import ru.shabashoff.entity.Vector;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.log4j.Log4j;
+import ru.shabashoff.entity.Point;
+import ru.shabashoff.entity.Vector;
+import ru.shabashoff.utils.GameUtils;
 
 @Log4j
 @Getter

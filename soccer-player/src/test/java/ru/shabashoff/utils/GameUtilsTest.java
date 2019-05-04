@@ -1,4 +1,4 @@
-package ru.shabashoff.Utils;
+package ru.shabashoff.utils;
 
 import lombok.extern.log4j.Log4j;
 import org.junit.Assert;

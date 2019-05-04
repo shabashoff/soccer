@@ -1,23 +1,27 @@
 package ru.shabashoff.decision;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j;
-import ru.shabashoff.Utils.TreeUtils;
+import ru.shabashoff.utils.TreeUtils;
 
-import java.lang.reflect.Array;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-
-import static ru.shabashoff.Utils.TreeUtils.bd;
-import static ru.shabashoff.Utils.TreeUtils.divide;
+import static ru.shabashoff.utils.TreeUtils.bd;
+import static ru.shabashoff.utils.TreeUtils.divide;
 
 @Log4j
 @SuppressWarnings("Duplicates")

@@ -1,14 +1,5 @@
 package ru.shabashoff.parser;
 
-import lombok.AccessLevel;
-import lombok.Setter;
-import lombok.SneakyThrows;
-import lombok.experimental.FieldDefaults;
-import ru.shabashoff.Utils.GameUtils;
-import ru.shabashoff.decision.DecisionTree;
-import ru.shabashoff.decision.Node;
-import ru.shabashoff.entity.Player;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -16,6 +7,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
+import lombok.AccessLevel;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import lombok.experimental.FieldDefaults;
+import ru.shabashoff.decision.DecisionTree;
+import ru.shabashoff.decision.Node;
+import ru.shabashoff.entity.Player;
+import ru.shabashoff.utils.GameUtils;
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class DtParser {

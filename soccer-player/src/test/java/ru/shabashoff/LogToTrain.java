@@ -1,13 +1,20 @@
 package ru.shabashoff;
 
+import java.io.FileInputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Scanner;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.Test;
 import ru.shabashoff.decision.C45;
 import ru.shabashoff.decision.DecisionTree;
-
-import java.io.FileInputStream;
-import java.math.BigDecimal;
-import java.util.*;
 
 @SuppressWarnings("ALL")
 public class LogToTrain {
@@ -29,7 +36,8 @@ public class LogToTrain {
             List<BigDecimal> bd = tv.get(key);
             if (bd != null) {
                 System.out.println("player time is null:" + key);
-            } else {
+            }
+            else {
                 continue;
 
             }
@@ -46,7 +54,8 @@ public class LogToTrain {
         for (TrainAction act : trainSample.acts) {
             if (ss.containsKey(act.action)) {
                 clss[i] = ss.get(act.action);
-            } else {
+            }
+            else {
                 ss.put(act.action, n);
                 clss[i] = n;
                 n++;
@@ -91,7 +100,8 @@ public class LogToTrain {
         for (TrainAction act : acts) {
             if (ss.containsKey(act.action)) {
                 clss[i] = ss.get(act.action);
-            } else {
+            }
+            else {
                 ss.put(act.action, n);
                 clss[i] = n;
                 n++;
@@ -115,13 +125,111 @@ public class LogToTrain {
         System.out.println(st);
 
         DecisionTree dt = C45.trainModel(vect, clss);
+        dt.saveToFile("testTree.dt");
+//        System.out.println(dt);
+    }
+
+    @Test
+    public void test10() {
+        calcSamples("../ts");
+    }
+
+    private void calcSamples(String prefFile) {
+        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors(prefFile + ".rcg");
+        TrainSample trainSample = getTrainSample(prefFile + ".rcl");
+
+        findDependencies(tv, trainSample);
+
+        List<BigDecimal[]> vect = new ArrayList<>();
+        List<Integer> clss = new ArrayList<>();
+
+        Map<String, Integer> mpn = new HashMap<>();
+        int n = 0;
+
+        for (Map.Entry<PlayerTime, List<TrainAction>> pt : trainSample.pars.entrySet()) {
+            PlayerTime key = pt.getKey();
+            List<BigDecimal> bd = tv.get(key);
+            if (bd != null) {
+                for (TrainAction ta : pt.getValue()) {
+
+                    BigDecimal[] q = new BigDecimal[bd.size()];
+                    q = bd.toArray(q);
+                    vect.add(q);
+
+                    if (mpn.containsKey(ta.getName())) {
+                        clss.add(mpn.get(ta.getName()));
+                    }
+                    else {
+                        mpn.put(ta.getName(), n);
+                        clss.add(n);
+                        n++;
+                    }
+                }
+            }
+        }
+
+
+        BigDecimal[][] qq = new BigDecimal[vect.size()][];
+        vect.toArray(qq);
+        int[] cc = new int[clss.size()];
+        for (int i = 0; i < clss.size(); i++) {
+            cc[i] = clss.get(i);
+        }
+
+        DecisionTree dt = C45.trainModel(qq, cc);
         System.out.println(dt);
+        dt.saveToFile("testSample.dt");
+    }
+
+    private void findDependencies(Map<PlayerTime, List<BigDecimal>> tv, TrainSample ts) {
+
+        final BigDecimal MAX_DELTA = BigDecimal.ONE;
+
+        for (Map.Entry<PlayerTime, List<TrainAction>> entry : ts.pars.entrySet()) {
+            List<BigDecimal> bd = tv.get(entry.getKey());
+
+            if (bd == null) {
+                continue;
+            }
+            boolean addParam = false;
+            for (TrainAction ta : entry.getValue()) {
+
+                for (BigDecimal param : ta.params) {
+                    if (addParam) {
+                        break;
+                    }
+
+                    for (int i = 0; i < bd.size(); i++) {
+                        BigDecimal q = bd.get(i);
+                        if (param.subtract(q).abs().compareTo(MAX_DELTA) > -1) {
+                            ta.action += "_PARAM_" + i;
+                            addParam = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (addParam) {
+                    ta.params.clear();
+                    addParam = false;
+                }
+
+            }
+        }
     }
 
 
     @SneakyThrows
     private TrainSample getTrainSample(String fileName) {
-        HashSet<String> msgs = new HashSet<>(Arrays.asList("kick", "catch", "turn", "move", "dash", "tackle", "turn_neck"));
+        HashSet<String> msgs = new HashSet<>(Arrays.asList(
+            "kick",
+            "catch",
+            "turn",
+            "move",
+            "dash",
+            "tackle",
+            "turn_neck"
+        ));
 
         FileInputStream fi = new FileInputStream(fileName);
 
@@ -146,11 +254,15 @@ public class LogToTrain {
 
             String st = line[2].substring(line[2].indexOf('_') + 1, line[2].indexOf(':'));
 
-            if (st.equals("Coach")) continue;
+            if (st.equals("Coach")) {
+                continue;
+            }
 
             int n = Integer.parseInt(st);
 
-            List<String> prs = getMessages(str.substring(line[0].length() + line[1].length() + line[2].length() + 3).replace("(", " (").trim());
+            List<String> prs = getMessages(str.substring(line[0].length() + line[1].length() + line[2].length() + 3)
+                                               .replace("(", " (")
+                                               .trim());
 
             PlayerTime pt = new PlayerTime(n, l + r, 0);
 
@@ -159,7 +271,9 @@ public class LogToTrain {
                 if (msgs.contains(ls.get(0))) {
                     List<BigDecimal> bb = new ArrayList<>();
                     for (int i = 1; i < ls.size(); i++) {
-                        if (!isNumeric(ls.get(i))) continue;
+                        if (!isNumeric(ls.get(i))) {
+                            continue;
+                        }
 
                         bb.add(new BigDecimal(ls.get(i)));
                     }
@@ -169,7 +283,9 @@ public class LogToTrain {
 
                     if (pars.containsKey(pt)) {
                         pars.get(pt).add(ta);
-                    } else {
+                        System.out.println(pt + ":" + pars.get(pt));
+                    }
+                    else {
                         ArrayList<TrainAction> ll = new ArrayList<>();
                         ll.add(ta);
                         pars.put(pt, ll);
@@ -285,15 +401,22 @@ public class LogToTrain {
         float delta = 36f;
 
         for (int i = 0; i < 10; i++) {
-            mp.put("turn", Arrays.asList(new TrainAction("turn", Arrays.asList(bd(cur)))));
-            mp.put("turn_neck", Arrays.asList(new TrainAction("turn_neck", Arrays.asList(bd(cur)))));
+            mp.put("turn", Arrays.asList(new TrainAction("turn", asList(bd(cur)))));
+            mp.put("turn_neck", Arrays.asList(new TrainAction("turn_neck", asList(bd(cur)))));
             cur += delta;
         }
 
-        mp.put("turn", Arrays.asList(new TrainAction("turn", Arrays.asList(bd(34.3662f)))));
-
         return mp;
     }
+
+    private List<BigDecimal> asList(BigDecimal... dd) {
+        ArrayList<BigDecimal> ls = new ArrayList<>();
+        for (BigDecimal q : dd) {
+            ls.add(q);
+        }
+        return ls;
+    }
+
 
     private static BigDecimal bd(float f) {
         return BigDecimal.valueOf(f);
@@ -302,7 +425,8 @@ public class LogToTrain {
     private static boolean isNumeric(String strNum) {
         try {
             double d = Double.parseDouble(strNum);
-        } catch (NumberFormatException | NullPointerException nfe) {
+        }
+        catch (NumberFormatException | NullPointerException nfe) {
             return false;
         }
         return true;
@@ -314,8 +438,12 @@ public class LogToTrain {
         int start = 0;
         int count = 0;
         for (int i = 0; i < chars.length; i++) {
-            if (chars[i] == '(') count++;
-            else if (chars[i] == ')') count--;
+            if (chars[i] == '(') {
+                count++;
+            }
+            else if (chars[i] == ')') {
+                count--;
+            }
 
             if ((chars[i] == ' ') && count == 0) {
                 list.add(new String(chars, start, i - start));
@@ -328,7 +456,9 @@ public class LogToTrain {
 
 
     private String parseType(String message) {
-        if (message.indexOf('(') == -1 || message.indexOf(' ') == -1) return message;
+        if (message.indexOf('(') == -1 || message.indexOf(' ') == -1) {
+            return message;
+        }
 
         return message.substring(message.indexOf('(') + 1, message.indexOf(' '));
     }
@@ -346,9 +476,9 @@ public class LogToTrain {
         @Override
         public String toString() {
             return "TrainSample{" +
-                    "pars=" + pars +
-                    ", acts=" + acts +
-                    '}';
+                "pars=" + pars +
+                ", acts=" + acts +
+                '}';
         }
     }
 
@@ -366,12 +496,16 @@ public class LogToTrain {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             PlayerTime that = (PlayerTime) o;
             return playerId == that.playerId &&
-                    time == that.time &&
-                    side == that.side;
+                time == that.time &&
+                side == that.side;
         }
 
         @Override
@@ -382,15 +516,15 @@ public class LogToTrain {
         @Override
         public String toString() {
             return "PlayerTime{" +
-                    "playerId=" + playerId +
-                    ", time=" + time +
-                    ", side=" + side +
-                    '}';
+                "playerId=" + playerId +
+                ", time=" + time +
+                ", side=" + side +
+                '}';
         }
     }
 
     static class TrainAction {
-        private final String action;
+        private String action;
         private final List<BigDecimal> params;
 
         TrainAction(String action, List<BigDecimal> params) {
@@ -400,16 +534,30 @@ public class LogToTrain {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             TrainAction that = (TrainAction) o;
             return action.equals(that.action)
-                    && params.equals(that.params);
+                && params.equals(that.params);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(action, params);//
+        }
+
+        public String getName() {
+            StringBuilder sb = new StringBuilder();
+
+            for (BigDecimal p : params) {
+                sb.append('_').append(p);
+            }
+
+            return action + sb;
         }
 
         @Override
