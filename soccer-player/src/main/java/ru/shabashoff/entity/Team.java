@@ -16,20 +16,36 @@ import java.util.Scanner;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Team implements Serializable {
     final List<Player> players = new ArrayList<>();
+    final Coach coach;
     static int teamCounts = 1;
 
 
     public Team() {
-        this(11, "team-" + teamCounts++);
+        this("team-" + teamCounts++);
     }
 
 
-    public Team(int countPlayers, String teamName) {
-        for (int i = 0; i < countPlayers; i++) {
-            Player player = new Player(i, teamName, createSimpleTree());
-            players.add(player);
-            player.move(-25, 0);
+    private Team(String teamName) {
+
+        Player gk = new Player(1, teamName, PlayerPosition.GOALKEEPER, getGoalkeeperTree());
+        gk.move(-41, 0);
+        addPlayer(gk);
+
+        for (int i = 0; i < 4; i++) {
+            addPlayer(new Player(i + 2, teamName, PlayerPosition.BACK, getPlayerTree()));
         }
+
+        for (int i = 0; i < 4; i++) {
+            addPlayer(new Player(i + 6, teamName, PlayerPosition.HALFBACK, getPlayerTree()));
+        }
+
+        for (int i = 0; i < 2; i++) {
+            addPlayer(new Player(i + 10, teamName, PlayerPosition.FORWARD, getPlayerTree()));
+        }
+
+        coach = new Coach(teamName);
+
+        coach.initPlayer(players.get(0));
     }
 
     @SneakyThrows
@@ -71,97 +87,27 @@ public class Team implements Serializable {
     }
 
     @SneakyThrows
-    private DecisionTree createSimpleTree() {
-
-        /*final Point[] mainPoints = new Point[]{new Point(-40, -20), new Point(40, -20), new Point(40, 20), new Point(-40, 20)};
-
-        final double minLen = 10.0;
-
-        class Wrapper implements Serializable {
-            private int n = 1;
-
-            public int getN() {
-                return n;
-            }
-
-            public void add() {
-                n = (n + 1) % mainPoints.length;
-            }
-        }
-
-        final AtomicBoolean catched = new AtomicBoolean(false);
-
-        final AtomicInteger catchMoveCount = new AtomicInteger(0);
-
-        final Wrapper curElem = new Wrapper();
-
-        Node ballActions = p -> {
-            if (catchMoveCount.getAndIncrement() < 2) {
-                p.rotateToGoal();
-
-            }
-            else {
-                p.kick(100, 0);
-                catched.set(false);
-                catchMoveCount.set(0);
-            }
-        };
-
-        Node findingBall = p -> p.turn(15);
-
-        Node catchBall = p -> {
-            catched.set(true);
-            p.catchBall(0);
-        };
-
-        Node goToBall = r -> {
-            SeeMessage see = r.getSee();
-            if (see != null) {
-                Point ballPoint = see.getBallPoint();
-                if (ballPoint != null) {
-                    r.goTo(ballPoint.getX(), ballPoint.getY());
-                }
-            }
-            else {
-                log.info("Expected point: " + r.getExpectedPoint());
-                r.goTo(mainPoints[curElem.getN()].getX(), mainPoints[curElem.getN()].getY());
-                if (new Vector(r.getExpectedPoint(), mainPoints[curElem.getN()]).getLength() < minLen) curElem.add();
-            }
-        };
-
-        Decision decisionCatchGo = new Decision(catchBall, goToBall, p -> GameUtils.isBallCatchable(p.getSee()));
-
-        Decision findOrGo = new Decision(decisionCatchGo, findingBall, p -> p.getSee() != null && p.getSee().getBallPoint() != null);
-
-        Decision kickOrOther = new Decision(ballActions, findOrGo, p -> catched.get());
-
-        DecisionTree tree = new DecisionTree(kickOrOther);
-        FileOutputStream fStream = new FileOutputStream("./tree.dt");
-        ObjectOutputStream oos = new ObjectOutputStream(fStream);
-        oos.writeObject(tree);
-        oos.flush();
-        oos.close();
-        fStream.flush();
-        fStream.close();
-
-        FileInputStream inputStream = new FileInputStream("./tree.dt");
-        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-
-        */
-
-
+    private DecisionTree getPlayerTree() {
         Decision ifCanCatch = new Decision(at(ActionType.CATCH), at(ActionType.GO_TO_BALL), 5, IfStatement.LESS_EQ, BigDecimal.valueOf(1.5));
 
         Decision ifSeeBall = new Decision(ifCanCatch, at(ActionType.ROTATE_RIGHT), 3, IfStatement.NON_EQ, null);//dont see ball
 
         Decision ifBallCatched = new Decision(at(ActionType.KICK_IN_GATE), ifSeeBall, 7, IfStatement.MORE, BigDecimal.valueOf(0));
 
-
         return new DecisionTree(ifBallCatched);
+    }
+
+    @SneakyThrows
+    private DecisionTree getGoalkeeperTree() {
+        return new DecisionTree(at(ActionType.ROTATE_RIGHT));
     }
 
     private Action at(ActionType a) {
         return new Action(a.getN());
+    }
+
+    private void addPlayer(Player player) {
+        players.add(player);
     }
 
 }

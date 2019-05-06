@@ -21,4 +21,11 @@ public class PlayerType extends ServerMessage{
     public void fillFields(List<String> params) {
         params.forEach(p -> parameters.add(Double.valueOf(p)));
     }
+
+    @Override
+    public String toString() {
+        return "PlayerType{" +
+                "parameters=" + parameters +
+                '}';
+    }
 }

@@ -39,7 +39,7 @@ public class Server {
                     server.receive(packet);
 
                     String response = new String(packet.getData(), StandardCharsets.UTF_8).trim();
-                    log.info("Message from client: " + response);
+                    //log.info("Message from client: " + response);
 
                     onNewMessageFromClient(bytes, packet.getAddress(), packet.getPort());
                 }

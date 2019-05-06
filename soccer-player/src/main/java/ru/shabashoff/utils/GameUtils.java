@@ -129,8 +129,4 @@ public class GameUtils {
     public static BigDecimal log2(BigDecimal val) {
         return BigDecimal.valueOf(Math.log(val.doubleValue()) / Math.log(2));
     }
-
-    public static BigDecimal bd(double d){
-
-    }
 }

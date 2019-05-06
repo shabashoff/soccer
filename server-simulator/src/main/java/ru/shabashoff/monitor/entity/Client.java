@@ -55,7 +55,7 @@ public class Client {
 
     private void addServerMessage(byte[] bytes) {
         String s = new String(bytes);
-        log.info("Add monitor message:" + s);
+        //log.info("Add monitor message:" + s);
         messageFromServerQueue.add(s);
 
         sendServerMessage(bytes);

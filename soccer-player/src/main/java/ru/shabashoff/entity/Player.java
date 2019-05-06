@@ -5,22 +5,27 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
 import ru.shabashoff.decision.ActionType;
 import ru.shabashoff.decision.DecisionTree;
-import ru.shabashoff.entity.server.ErrorMessage;
-import ru.shabashoff.entity.server.HearMessage;
-import ru.shabashoff.entity.server.SeeMessage;
-import ru.shabashoff.entity.server.SenseBody;
+import ru.shabashoff.entity.server.*;
 import ru.shabashoff.utils.GameUtils;
 
+@SuppressWarnings("Duplicates")
 @Log4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Player extends RCSSServerClient implements Serializable {
+    @Getter
     final int id;
+    @Getter
+    final PlayerPosition playerPosition;
     final String teamName;
+
+    PlayMode playMode;
 
     double expectedX = 0.0;
     double expectedY = 0.0;
@@ -40,8 +45,11 @@ public class Player extends RCSSServerClient implements Serializable {
 
     int ballCatchable = 0;
 
-    public Player(int id, String teamName, DecisionTree tree) {
+    private static final BigDecimal DEFAULT_NULL = null;
+
+    public Player(int id, String teamName, PlayerPosition playerPosition, DecisionTree tree) {
         super(teamName);
+        this.playerPosition = playerPosition;
         this.tree = tree;
         this.id = id;
         this.teamName = teamName;
@@ -72,15 +80,14 @@ public class Player extends RCSSServerClient implements Serializable {
     public void rotateToGoal() {
         synchronized (seeMonitor) {
             turn(-(int) (see.getPlayerExpectedAngle() -
-                GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint)));
+                    GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint)));
         }
     }
 
     public void catchAction() {
         if (getBallPoint() != null && getExpectedPoint() != null) {
             catchBall(-(int) GameUtils.calcVecAngle(getExpectedPoint(), getBallPoint())); //TODO
-        }
-        else {
+        } else {
             catchBall(0);
         }
     }
@@ -91,8 +98,8 @@ public class Player extends RCSSServerClient implements Serializable {
 
     public void kickInGateAction() {
         kick(
-            50,
-            -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))
+                50,
+                -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))
         ); //TODO
     }
 
@@ -134,7 +141,12 @@ public class Player extends RCSSServerClient implements Serializable {
 
     @Override
     protected void onHearMessage(HearMessage message) {
-        log.debug(message);
+        System.out.println("On hear fckg message:" + message);
+        if (message.getName().equals("referee")) {
+            System.out.println("MMMM");
+            playMode = PlayMode.valueOf(message.getMessage());
+            System.out.println(playMode);
+        }
     }
 
     @Override
@@ -186,17 +198,19 @@ public class Player extends RCSSServerClient implements Serializable {
 
         if (minAngle > Math.abs(angle)) {
             dash(50);
-        }
-        else {
+        } else {
             turn((int) angle);
 
         }
 
     }
 
-    //TODO: simplify method
-    public BigDecimal[] getSnapshot() {
+    public BigDecimal[] getSnapshotV2() {
         List<BigDecimal> args = new ArrayList<>();
+
+        args.add(BigDecimal.valueOf(id));
+
+        args.add(BigDecimal.valueOf(playMode.ordinal()));
 
         Point expectedPoint = getExpectedPoint();
 
@@ -209,15 +223,44 @@ public class Player extends RCSSServerClient implements Serializable {
         if (ballPoint != null && expectedPoint != null) {
             args.add(BigDecimal.valueOf(GameUtils.getLength(expectedPoint, ballPoint)));
             args.add(BigDecimal.valueOf(GameUtils.calcVecAngle(expectedPoint, ballPoint)));
-        }
-        else {
-            args.add(null);
-            args.add(null);
+        } else {
+            args.add(DEFAULT_NULL);
+            args.add(DEFAULT_NULL);
         }
 
         args.add(BigDecimal.valueOf(ballCatchable));
         BigDecimal[] bd = new BigDecimal[args.size()];
         args.toArray(bd);
+
+
+        return bd;
+    }
+
+
+    //TODO: simplify method
+    public BigDecimal[] getSnapshot() {
+        List<BigDecimal> args = new ArrayList<>();
+
+        Point expectedPoint = getExpectedPoint();
+
+        addPoint(args, expectedPoint);
+        args.add(BigDecimal.valueOf(getExpectedAngle()));
+
+        Point ballPoint = getBallPoint();
+        addPoint(args, ballPoint);
+
+        if (ballPoint != null && expectedPoint != null) {
+            args.add(BigDecimal.valueOf(GameUtils.getLength(expectedPoint, ballPoint)));
+            args.add(BigDecimal.valueOf(GameUtils.calcVecAngle(expectedPoint, ballPoint)));
+        } else {
+            args.add(DEFAULT_NULL);
+            args.add(DEFAULT_NULL);
+        }
+
+        args.add(BigDecimal.valueOf(ballCatchable));
+        BigDecimal[] bd = new BigDecimal[args.size()];
+        args.toArray(bd);
+
 
         return bd;
     }
@@ -226,10 +269,9 @@ public class Player extends RCSSServerClient implements Serializable {
         if (pt != null) {
             args.add(BigDecimal.valueOf(pt.getX()));
             args.add(BigDecimal.valueOf(pt.getY()));
-        }
-        else {
-            args.add(null);
-            args.add(null);
+        } else {
+            args.add(DEFAULT_NULL);
+            args.add(DEFAULT_NULL);
         }
     }
 }

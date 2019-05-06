@@ -11,10 +11,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
+
 import lombok.SneakyThrows;
 import org.junit.Test;
 import ru.shabashoff.decision.C45;
 import ru.shabashoff.decision.DecisionTree;
+import ru.shabashoff.entity.server.PlayMode;
 
 @SuppressWarnings("ALL")
 public class LogToTrain {
@@ -36,8 +38,7 @@ public class LogToTrain {
             List<BigDecimal> bd = tv.get(key);
             if (bd != null) {
                 System.out.println("player time is null:" + key);
-            }
-            else {
+            } else {
                 continue;
 
             }
@@ -54,8 +55,7 @@ public class LogToTrain {
         for (TrainAction act : trainSample.acts) {
             if (ss.containsKey(act.action)) {
                 clss[i] = ss.get(act.action);
-            }
-            else {
+            } else {
                 ss.put(act.action, n);
                 clss[i] = n;
                 n++;
@@ -100,8 +100,7 @@ public class LogToTrain {
         for (TrainAction act : acts) {
             if (ss.containsKey(act.action)) {
                 clss[i] = ss.get(act.action);
-            }
-            else {
+            } else {
                 ss.put(act.action, n);
                 clss[i] = n;
                 n++;
@@ -131,10 +130,11 @@ public class LogToTrain {
 
     @Test
     public void test10() {
-        calcSamples("../ts");
+        DecisionTree dt = calcSamples("../ts");
+        dt.saveToFile("testSample.dt");
     }
 
-    private void calcSamples(String prefFile) {
+    private DecisionTree calcSamples(String prefFile) {
         Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors(prefFile + ".rcg");
         TrainSample trainSample = getTrainSample(prefFile + ".rcl");
 
@@ -158,8 +158,7 @@ public class LogToTrain {
 
                     if (mpn.containsKey(ta.getName())) {
                         clss.add(mpn.get(ta.getName()));
-                    }
-                    else {
+                    } else {
                         mpn.put(ta.getName(), n);
                         clss.add(n);
                         n++;
@@ -176,9 +175,7 @@ public class LogToTrain {
             cc[i] = clss.get(i);
         }
 
-        DecisionTree dt = C45.trainModel(qq, cc);
-        System.out.println(dt);
-        dt.saveToFile("testSample.dt");
+        return C45.trainModel(qq, cc);
     }
 
     private void findDependencies(Map<PlayerTime, List<BigDecimal>> tv, TrainSample ts) {
@@ -222,13 +219,13 @@ public class LogToTrain {
     @SneakyThrows
     private TrainSample getTrainSample(String fileName) {
         HashSet<String> msgs = new HashSet<>(Arrays.asList(
-            "kick",
-            "catch",
-            "turn",
-            "move",
-            "dash",
-            "tackle",
-            "turn_neck"
+                "kick",
+                "catch",
+                "turn",
+                "move",
+                "dash",
+                "tackle",
+                "turn_neck"
         ));
 
         FileInputStream fi = new FileInputStream(fileName);
@@ -261,8 +258,8 @@ public class LogToTrain {
             int n = Integer.parseInt(st);
 
             List<String> prs = getMessages(str.substring(line[0].length() + line[1].length() + line[2].length() + 3)
-                                               .replace("(", " (")
-                                               .trim());
+                    .replace("(", " (")
+                    .trim());
 
             PlayerTime pt = new PlayerTime(n, l + r, 0);
 
@@ -284,8 +281,7 @@ public class LogToTrain {
                     if (pars.containsKey(pt)) {
                         pars.get(pt).add(ta);
                         System.out.println(pt + ":" + pars.get(pt));
-                    }
-                    else {
+                    } else {
                         ArrayList<TrainAction> ll = new ArrayList<>();
                         ll.add(ta);
                         pars.put(pt, ll);
@@ -306,24 +302,35 @@ public class LogToTrain {
 
         Map<PlayerTime, List<BigDecimal>> pars = new HashMap<>();
 
+        PlayMode curPlayMode = PlayMode.before_kick_off;
+
+
         while (sc.hasNext()) {
             String line = sc.nextLine();
             String type = parseType(line);
+            List<String> messages;
+            switch (type) {
+                case "show":
+                    messages = getMessages(line.substring(line.indexOf(' ') + 1, line.length() - 1));
 
-            if (type.equals("show")) {
-                List<String> messages = getMessages(line.substring(line.indexOf(' ') + 1, line.length() - 1));
+                    long time = Long.parseLong(messages.get(0));
 
-                long time = Long.parseLong(messages.get(0));
+                    List<BigDecimal> bls = getBallParameters(messages.get(1));
 
-                List<BigDecimal> bls = getBallParameters(messages.get(1));
+                    for (int i = 2; i < messages.size(); i++) {
+                        List<BigDecimal> p = getParameters(messages.get(i));
+                        p.addAll(bls);
 
-                for (int i = 2; i < messages.size(); i++) {
-                    List<BigDecimal> p = getParameters(messages.get(i));
-                    p.addAll(bls);
-
-                    pars.put(new PlayerTime((i - 2) % 11, time, i > 10 ? 1 : 0), p);
-                }
+                        pars.put(new PlayerTime((i - 2) % 11, time, i > 10 ? 1 : 0), p);
+                    }
+                    break;
+                case "playmode":
+                    messages = getMessages(line.substring(line.indexOf(' ') + 1, line.length() - 1));
+                    curPlayMode = PlayMode.valueOf(messages.get(1));
+                    break;
             }
+
+
         }
 
         return pars;
@@ -425,8 +432,7 @@ public class LogToTrain {
     private static boolean isNumeric(String strNum) {
         try {
             double d = Double.parseDouble(strNum);
-        }
-        catch (NumberFormatException | NullPointerException nfe) {
+        } catch (NumberFormatException | NullPointerException nfe) {
             return false;
         }
         return true;
@@ -440,8 +446,7 @@ public class LogToTrain {
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == '(') {
                 count++;
-            }
-            else if (chars[i] == ')') {
+            } else if (chars[i] == ')') {
                 count--;
             }
 
@@ -476,9 +481,9 @@ public class LogToTrain {
         @Override
         public String toString() {
             return "TrainSample{" +
-                "pars=" + pars +
-                ", acts=" + acts +
-                '}';
+                    "pars=" + pars +
+                    ", acts=" + acts +
+                    '}';
         }
     }
 
@@ -504,8 +509,8 @@ public class LogToTrain {
             }
             PlayerTime that = (PlayerTime) o;
             return playerId == that.playerId &&
-                time == that.time &&
-                side == that.side;
+                    time == that.time &&
+                    side == that.side;
         }
 
         @Override
@@ -516,10 +521,10 @@ public class LogToTrain {
         @Override
         public String toString() {
             return "PlayerTime{" +
-                "playerId=" + playerId +
-                ", time=" + time +
-                ", side=" + side +
-                '}';
+                    "playerId=" + playerId +
+                    ", time=" + time +
+                    ", side=" + side +
+                    '}';
         }
     }
 
@@ -542,7 +547,7 @@ public class LogToTrain {
             }
             TrainAction that = (TrainAction) o;
             return action.equals(that.action)
-                && params.equals(that.params);
+                    && params.equals(that.params);
         }
 
         @Override

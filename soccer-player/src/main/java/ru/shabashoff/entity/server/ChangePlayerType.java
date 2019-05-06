@@ -20,4 +20,12 @@ public class ChangePlayerType extends ServerMessage {
         from = Integer.parseInt(params.get(0));
         to = Integer.parseInt(params.get(1));
     }
+
+    @Override
+    public String toString() {
+        return "ChangePlayerType{" +
+                "from=" + from +
+                ", to=" + to +
+                '}';
+    }
 }
