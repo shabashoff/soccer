@@ -27,11 +27,14 @@ public class Player extends RCSSServerClient implements Serializable {
 
     PlayMode playMode;
 
-    double expectedX = 0.0;
-    double expectedY = 0.0;
+    Point point = new Point();
+    Point speed = new Point();
+    double playerAngle;
 
-    double speedX = 0.0;
-    double speedY = 0.0;
+    double angleToBoal;
+
+    Point ballPoint = new Point();
+    Point ballSpeed = new Point();
 
     volatile SenseBody sense;
     final Object[] senseMonitor = new Object[0];
@@ -97,10 +100,7 @@ public class Player extends RCSSServerClient implements Serializable {
     }
 
     public void kickInGateAction() {
-        kick(
-                50,
-                -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))
-        ); //TODO
+        kick(50, -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))); //TODO
     }
 
     public void rotateRightAction() {
@@ -160,10 +160,13 @@ public class Player extends RCSSServerClient implements Serializable {
     protected void onSeeMessage(SeeMessage message) {
         synchronized (seeMonitor) {
             see = message;
-            synchronized (senseMonitor) {
-                see.findPlayerPointAngle();
-            }
+            see.findPlayerPointAngle();
+
+            playerAngle = see.getPlayerExpectedAngle(); // TODO: add speed calc
+            point = getExpectedPoint();
+            ballPoint = getBallPoint();
         }
+
         action();
 
         if (ballCatchable != 0) {
@@ -177,6 +180,12 @@ public class Player extends RCSSServerClient implements Serializable {
 
     public SeeMessage getSee() {
         return see;
+    }
+
+    public void calcInternalParams() {
+        playerAngle = see.getPlayerExpectedAngle();
+        point = getExpectedPoint();
+        ballPoint = getBallPoint();
     }
 
     public void goTo(double x, double y) {

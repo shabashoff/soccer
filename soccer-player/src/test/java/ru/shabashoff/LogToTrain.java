@@ -318,7 +318,7 @@ public class LogToTrain {
                     List<BigDecimal> bls = getBallParameters(messages.get(1));
 
                     for (int i = 2; i < messages.size(); i++) {
-                        List<BigDecimal> p = getParameters(messages.get(i));
+                        List<BigDecimal> p = getParameters(curPlayMode, messages);
                         p.addAll(bls);
 
                         pars.put(new PlayerTime((i - 2) % 11, time, i > 10 ? 1 : 0), p);
@@ -337,7 +337,23 @@ public class LogToTrain {
     }
 
 
-    private List<BigDecimal> getParameters(String msg) {
+    private List<BigDecimal> getParameters(PlayMode mode, List<String> msg) {
+        List<BigDecimal> list = new ArrayList<>();
+
+
+        List<BigDecimal> bp = getBallParameters(msg.get(1));
+
+
+
+
+
+        list.addAll(bp);
+
+        return list;
+    }
+
+    @Deprecated
+    private List<BigDecimal> getParametersOld(String msg) {
         List<String> pps = getMessages(msg.substring(1, msg.length() - 1));
         List<BigDecimal> bls = new ArrayList<>();
 
