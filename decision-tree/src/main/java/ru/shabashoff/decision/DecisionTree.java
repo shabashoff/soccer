@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -15,18 +16,18 @@ import lombok.experimental.FieldDefaults;
 @SuppressWarnings("Duplicates")
 @ToString
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class DecisionTree implements Serializable {
+public class DecisionTree<T> implements Serializable {
     static final long serialVersionUID = 1L;
 
 
     @Getter
-    Node head;
+    Node<T> head;
 
-    public DecisionTree(Node head) {
+    public DecisionTree(Node<T> head) {
         this.head = head;
     }
 
-    public int action(BigDecimal[] arr) {
+    public T action(BigDecimal[] arr) {
         return head.run(arr);
     }
 
@@ -38,9 +39,9 @@ public class DecisionTree implements Serializable {
     }
 
     @SneakyThrows
-    public static DecisionTree loadFromFile(String path) {
+    public static <T> DecisionTree<T> loadFromFile(String path) {
         ObjectInputStream in = new ObjectInputStream(new FileInputStream(path));
-        DecisionTree dt = (DecisionTree) in.readObject();
+        DecisionTree<T> dt = (DecisionTree<T>) in.readObject();
         in.close();
 
         return dt;

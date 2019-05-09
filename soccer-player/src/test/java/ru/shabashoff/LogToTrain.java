@@ -11,11 +11,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import lombok.SneakyThrows;
 import org.junit.Test;
 import ru.shabashoff.decision.C45;
 import ru.shabashoff.decision.DecisionTree;
+import ru.shabashoff.entity.Player;
+import ru.shabashoff.entity.Point;
+import ru.shabashoff.entity.Team;
 import ru.shabashoff.entity.server.PlayMode;
 
 @SuppressWarnings("ALL")
@@ -23,12 +27,12 @@ public class LogToTrain {
 
     @Test
     public void tets2() {
-        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors("../ts.rcg");
+        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors("../ts.rcg", new HashMap<>());
         TrainSample trainSample = getTrainSample("../ts.rcl");
         Map<PlayerTime, List<TrainAction>> ts = trainSample.pars;
 
         BigDecimal[][] vect = new BigDecimal[ts.size()][];
-        int[] clss = new int[ts.size()];
+        Integer[] clss = new Integer[ts.size()];
         int i = 0;
 
         HashMap<String, Integer> st = new HashMap<>();
@@ -64,7 +68,7 @@ public class LogToTrain {
             i++;
         }
 
-        DecisionTree dt = C45.trainModel(vect, clss);
+        DecisionTree dt = (new C45()).trainModel(vect, clss);
         System.out.println(dt);
     }
 
@@ -72,7 +76,7 @@ public class LogToTrain {
     @Test
     public void test() {
 
-        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors("../ts.rcg");
+        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors("../ts.rcg", new HashMap<>());
 
 
         TrainSample ts = getTrainSample("../ts.rcl");
@@ -83,7 +87,7 @@ public class LogToTrain {
         HashMap<String, List<List<BigDecimal>>> st = new HashMap<>();
 
         BigDecimal[][] vect = new BigDecimal[acts.size()][];
-        int[] clss = new int[acts.size()];
+        Integer[] clss = new Integer[acts.size()];
 
         int i = 0;
 
@@ -123,7 +127,7 @@ public class LogToTrain {
 
         System.out.println(st);
 
-        DecisionTree dt = C45.trainModel(vect, clss);
+        DecisionTree dt = (new C45<Integer>()).trainModel(vect, clss);
         dt.saveToFile("testTree.dt");
 //        System.out.println(dt);
     }
@@ -135,7 +139,14 @@ public class LogToTrain {
     }
 
     private DecisionTree calcSamples(String prefFile) {
-        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors(prefFile + ".rcg");
+        Team team = new Team();
+        Map<Long, Player> map = new HashMap<>();
+
+        for (Player player : team.getPlayers()) {
+            map.put((long) player.getId(), player);
+        }
+
+        Map<PlayerTime, List<BigDecimal>> tv = getTrainVectors(prefFile + ".rcg", map);
         TrainSample trainSample = getTrainSample(prefFile + ".rcl");
 
         findDependencies(tv, trainSample);
@@ -167,20 +178,21 @@ public class LogToTrain {
             }
         }
 
+        System.out.println(mpn);
 
         BigDecimal[][] qq = new BigDecimal[vect.size()][];
         vect.toArray(qq);
-        int[] cc = new int[clss.size()];
-        for (int i = 0; i < clss.size(); i++) {
-            cc[i] = clss.get(i);
-        }
 
-        return C45.trainModel(qq, cc);
+        Integer[] cc = new Integer[clss.size()];
+        cc = clss.toArray(cc);
+        int ss = 5;
+        Integer ss2 = 5;
+        return (new C45<Integer>()).trainModel(qq, cc);
     }
 
     private void findDependencies(Map<PlayerTime, List<BigDecimal>> tv, TrainSample ts) {
 
-        final BigDecimal MAX_DELTA = BigDecimal.ONE;
+        final BigDecimal MAX_DELTA = BigDecimal.valueOf(0.1);
 
         for (Map.Entry<PlayerTime, List<TrainAction>> entry : ts.pars.entrySet()) {
             List<BigDecimal> bd = tv.get(entry.getKey());
@@ -188,29 +200,41 @@ public class LogToTrain {
             if (bd == null) {
                 continue;
             }
-            boolean addParam = false;
-            for (TrainAction ta : entry.getValue()) {
 
+            boolean founded = false;
+
+            for (TrainAction ta : entry.getValue()) {
                 for (BigDecimal param : ta.params) {
-                    if (addParam) {
-                        break;
-                    }
+                    founded = false;
 
                     for (int i = 0; i < bd.size(); i++) {
                         BigDecimal q = bd.get(i);
-                        if (param.subtract(q).abs().compareTo(MAX_DELTA) > -1) {
+
+                        if (param == null || q == null) {
+                            if (param == null || q == null) {
+                                ta.action += "_PARAM_" + i;
+                                founded = true;
+                                break;
+                            }
+                            continue;
+                        }
+
+                        if (param.subtract(q).abs().compareTo(MAX_DELTA) < 1) {
                             ta.action += "_PARAM_" + i;
-                            addParam = true;
+                            founded = true;
                             break;
                         }
                     }
-                }
 
-                if (addParam) {
-                    ta.params.clear();
-                    addParam = false;
+                    if (!founded) {
+                        ta.action += "_" + param;
+                    }
                 }
-
+            }
+        }
+        for (Map.Entry<PlayerTime, List<TrainAction>> entry : ts.pars.entrySet()) {
+            for (TrainAction ta : entry.getValue()) {
+                ta.params.clear();
             }
         }
     }
@@ -280,7 +304,7 @@ public class LogToTrain {
 
                     if (pars.containsKey(pt)) {
                         pars.get(pt).add(ta);
-                        System.out.println(pt + ":" + pars.get(pt));
+                        //System.out.println(pt + ":" + pars.get(pt));
                     } else {
                         ArrayList<TrainAction> ll = new ArrayList<>();
                         ll.add(ta);
@@ -295,14 +319,14 @@ public class LogToTrain {
     }
 
     @SneakyThrows
-    private Map<PlayerTime, List<BigDecimal>> getTrainVectors(String fileName) {
+    private Map<PlayerTime, List<BigDecimal>> getTrainVectors(String fileName, Map<Long, Player> players) {
         FileInputStream fi = new FileInputStream(fileName);
 
         Scanner sc = new Scanner(fi);
 
         Map<PlayerTime, List<BigDecimal>> pars = new HashMap<>();
 
-        PlayMode curPlayMode = PlayMode.before_kick_off;
+        players.forEach((k, v) -> v.setPlayMode(PlayMode.before_kick_off));
 
 
         while (sc.hasNext()) {
@@ -315,18 +339,17 @@ public class LogToTrain {
 
                     long time = Long.parseLong(messages.get(0));
 
-                    List<BigDecimal> bls = getBallParameters(messages.get(1));
+                    List<List<BigDecimal>> p = getParameters("l", messages, players);
 
-                    for (int i = 2; i < messages.size(); i++) {
-                        List<BigDecimal> p = getParameters(curPlayMode, messages);
-                        p.addAll(bls);
-
-                        pars.put(new PlayerTime((i - 2) % 11, time, i > 10 ? 1 : 0), p);
+                    for (int i = 0; i < p.size(); i++) {
+                        List<BigDecimal> ll = p.get(i);
+                        pars.put(new PlayerTime(i % 11, time, i > 10 ? 1 : 0), ll);
                     }
                     break;
                 case "playmode":
                     messages = getMessages(line.substring(line.indexOf(' ') + 1, line.length() - 1));
-                    curPlayMode = PlayMode.valueOf(messages.get(1));
+                    PlayMode pm = PlayMode.valueOf(messages.get(1));
+                    players.forEach((k, v) -> v.setPlayMode(pm));
                     break;
             }
 
@@ -337,17 +360,26 @@ public class LogToTrain {
     }
 
 
-    private List<BigDecimal> getParameters(PlayMode mode, List<String> msg) {
-        List<BigDecimal> list = new ArrayList<>();
+    private List<List<BigDecimal>> getParameters(String side, List<String> msg, Map<Long, Player> players) {
+        List<List<BigDecimal>> list = new ArrayList<>();
+        Point bp = getBallPoint(msg.get(1));
+        Player player;
 
+        for (int i = 2; i < msg.size(); i++) {
+            List<BigDecimal> po = getParametersOld(msg.get(i));
+            Long id = po.get(0).longValue();
+            player = players.get(id);
 
-        List<BigDecimal> bp = getBallParameters(msg.get(1));
+            Point point = new Point(po.get(3), po.get(4));
+            BigDecimal angle = po.get(7);
 
+            if (id == 1) {
+                System.out.println(po);
+            }
 
-
-
-
-        list.addAll(bp);
+            player.calcInternalParams(angle, point, bp);
+            list.add(player.getSnapshotV2(true));
+        }
 
         return list;
     }
@@ -355,28 +387,29 @@ public class LogToTrain {
     @Deprecated
     private List<BigDecimal> getParametersOld(String msg) {
         List<String> pps = getMessages(msg.substring(1, msg.length() - 1));
-        List<BigDecimal> bls = new ArrayList<>();
+        String s = pps.get(0);
+        BigDecimal id = new BigDecimal(getMessages(s.substring(1, s.length() - 1)).get(1));
 
-        bls.add(BigDecimal.valueOf(Double.parseDouble(pps.get(1))));
-        bls.add(new BigDecimal(pps.get(2).charAt(pps.get(2).length() - 1)));
+        List<BigDecimal> parameters = new ArrayList<>();
+
+        parameters.add(id);
+        parameters.add(BigDecimal.valueOf(Double.parseDouble(pps.get(1))));
+        parameters.add(new BigDecimal(pps.get(2).charAt(pps.get(2).length() - 1)));
 
         for (int i = 3; i < 9; i++) {
-            bls.add(BigDecimal.valueOf(Double.parseDouble(pps.get(i))));
+            parameters.add(BigDecimal.valueOf(Double.parseDouble(pps.get(i))));
         }
 
-        return bls;
+        return parameters;
     }
 
 
-    private List<BigDecimal> getBallParameters(String msg) {
+    private Point getBallPoint(String msg) {
         List<String> pps = getMessages(msg.substring(1, msg.length() - 1));
-        List<BigDecimal> bls = new ArrayList<>();
 
-        for (int i = 1; i < pps.size(); i++) {
-            bls.add(BigDecimal.valueOf(Double.parseDouble(pps.get(i))));
-        }
+        Point point = new Point(new BigDecimal(pps.get(1)), new BigDecimal(pps.get(2)));
 
-        return bls;
+        return point;
     }
 
     private TrainAction convertToNormalValue(TrainAction act) {

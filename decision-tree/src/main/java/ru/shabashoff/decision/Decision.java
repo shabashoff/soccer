@@ -13,18 +13,18 @@ import java.math.BigDecimal;
 @Data
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Decision implements Node, Serializable {
+public class Decision<T> implements Node<T>, Serializable {
 
     static final long serialVersionUID = 1L;
 
     DecisionRunnable decisionRunnableNew = this::check;
-    Node left, right;
+    Node<T> left, right;
 
     int indexOfParameter;
     IfStatement ifStmt;
     BigDecimal val;
 
-    public Decision(Node left, Node right, int indexOfParameter, IfStatement ifStmt, BigDecimal val) {
+    public Decision(Node<T> left, Node<T> right, int indexOfParameter, IfStatement ifStmt, BigDecimal val) {
         this.left = left;
         this.right = right;
         this.indexOfParameter = indexOfParameter;
@@ -37,7 +37,7 @@ public class Decision implements Node, Serializable {
     }
 
     @Override
-    public int run(BigDecimal[] vector) {
+    public T run(BigDecimal[] vector) {
         if (decisionRunnableNew.run(vector)) return left.run(vector);
         else return right.run(vector);
     }
@@ -54,8 +54,8 @@ public class Decision implements Node, Serializable {
         val = (BigDecimal) in.readObject();
         ifStmt = (IfStatement) in.readObject();
         indexOfParameter = (int) in.readObject();
-        left = (Action) in.readObject();
-        right = (Action) in.readObject();
+        left = (Action<T>) in.readObject();
+        right = (Action<T>) in.readObject();
     }
 
 

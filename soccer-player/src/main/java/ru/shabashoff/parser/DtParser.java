@@ -40,9 +40,9 @@ public class DtParser {
     public DtParser(File file, Player player) {
         this.in = new BufferedReader(new FileReader(file));
 
-        getters.put("getExpectedPoint", player::getExpectedPoint);
+        getters.put("calcExpectedPoint", player::calcExpectedPoint);
         getters.put("getExpectedAngle", player::getExpectedAngle);
-        getters.put("getBallPoint", player::getBallPoint);
+        getters.put("calcBallPoint", player::calcBallPoint);
 
     }
 

@@ -1,5 +1,6 @@
 package ru.shabashoff.entity;
 
+import com.sun.istack.internal.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -18,6 +20,11 @@ public class Point implements Serializable {
     public Point(Point p) {
         x = p.getX();
         y = p.getY();
+    }
+
+    public Point(@NotNull BigDecimal x, @NotNull BigDecimal y) {
+        this.x = x.doubleValue();
+        this.y = y.doubleValue();
     }
 
     public Point addPoint(Point p) {

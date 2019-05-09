@@ -4,6 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @FunctionalInterface
-public interface Node {
-    int run(BigDecimal[] vector);
+public interface Node<T> {
+    T run(BigDecimal[] vector);
 }

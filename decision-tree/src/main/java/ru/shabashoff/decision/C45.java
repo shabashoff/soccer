@@ -13,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -25,14 +26,25 @@ import static ru.shabashoff.utils.TreeUtils.divide;
 
 @Log4j
 @SuppressWarnings("Duplicates")
-public class C45 {
-
+public class C45<T> {
+    private static BigDecimal DEFAULT_NULL = BigDecimal.ZERO;
     private static final int COUNT_SEP = 1;
 
-    @SneakyThrows
-    public static DecisionTree trainModel(BigDecimal[][] vector, int[] classes) {
+    private final Map<Integer, T> classes = new HashMap<>();
 
-        if (vector.length != classes.length) {
+
+    @SneakyThrows
+    public DecisionTree<T> trainModel(BigDecimal[][] vector, T[] ccc) {
+
+        for (BigDecimal[] bd : vector) {
+            for (int i = 0; i < bd.length; i++) {
+                if (bd[i] == null) bd[i] = DEFAULT_NULL;
+            }
+        }
+
+        int[] clss = createClasses(ccc);
+
+        if (vector.length != clss.length) {
             throw new IllegalArgumentException("Sizes is illegal");
         }
 
@@ -44,18 +56,18 @@ public class C45 {
 
         InputVector[] inputVectors = new InputVector[vector.length];
 
-        for (int i = 0; i < classes.length; i++) {
-            int cls = classes[i];
+        for (int i = 0; i < clss.length; i++) {
+            int cls = clss[i];
             inputVectors[i] = new InputVector(vector[i], cls);
 
             ctnClasses = Integer.max(ctnClasses, cls + 1);
         }
 
-        return new DecisionTree(trainModel(inputVectors, ctnClasses, ints.length * COUNT_SEP, ints));
+        return new DecisionTree<>(trainModel(inputVectors, ctnClasses, ints.length * COUNT_SEP, ints));
     }
 
     @SneakyThrows
-    private static Node trainModel(InputVector[] vector, int ctnClasses, int remCls, int[] remaining) {
+    private Node<T> trainModel(InputVector[] vector, int ctnClasses, int remCls, int[] remaining) {
 
         if (remCls == 0) {
             int[] clss = new int[ctnClasses];
@@ -69,7 +81,7 @@ public class C45 {
                 if (clss[j] > clss[mx]) mx = j;
             }
 
-            return new Action(mx);
+            return new Action<>(classes.get(mx));
         }
 
         ExecutorService executor = Executors.newFixedThreadPool(vector[0].vector.length);
@@ -96,7 +108,7 @@ public class C45 {
 
         countDownLatch.await();
 
-        if (map.isEmpty()) return new Action(getMaxClass(vector, ctnClasses));
+        if (map.isEmpty()) return new Action<>(classes.get(getMaxClass(vector, ctnClasses)));
 
         BigDecimal max = BigDecimal.ONE.negate();
         Integer curPos = 0;
@@ -122,7 +134,7 @@ public class C45 {
 
         remaining[finalCurPos]--;
 
-        return new Decision(
+        return new Decision<>(
                 trainModel(left, ctnClasses, remCls - 1, Arrays.copyOf(remaining, remaining.length)),
                 trainModel(right, ctnClasses, remCls - 1, Arrays.copyOf(remaining, remaining.length)),
                 finalCurPos,
@@ -131,7 +143,7 @@ public class C45 {
         );
     }
 
-    private static int getMaxClass(InputVector[] vector, int ctnClasses) {
+    private int getMaxClass(InputVector[] vector, int ctnClasses) {
         int[] clss = new int[ctnClasses];
         for (InputVector iv : vector) {
             clss[iv.cls]++;
@@ -147,7 +159,7 @@ public class C45 {
 
     }
 
-    private static TrainingPair getMaxGainTrainingPair(InputVector[] vector, int cntClasses, int i) {//TODO:Error occur bcz size is small!!!
+    private TrainingPair getMaxGainTrainingPair(InputVector[] vector, int cntClasses, int i) {//TODO:Error occur bcz size is small!!!
         List<TrainingPair> tp = getTrainingPair(vector, cntClasses, i);
 
         if (tp == null || tp.isEmpty()) return null;
@@ -155,7 +167,7 @@ public class C45 {
         return Collections.max(tp, Comparator.comparing(o -> o.gain));
     }
 
-    private static List<TrainingPair> getTrainingPair(InputVector[] vector, int cntClasses, int i) {
+    private List<TrainingPair> getTrainingPair(InputVector[] vector, int cntClasses, int i) {
 
         if (vector.length <= 1) return null;
 
@@ -218,7 +230,7 @@ public class C45 {
     }
 
 
-    private static BigDecimal calcEntropy(int[] clsCount, BigDecimal cls) {
+    private BigDecimal calcEntropy(int[] clsCount, BigDecimal cls) {
         BigDecimal entropy = BigDecimal.ZERO;
         for (int i1 : clsCount) {
             if (i1 != 0) {
@@ -228,6 +240,26 @@ public class C45 {
         }
         return entropy;
     }
+
+    private int[] createClasses(T[] classes) {
+        int[] clss = new int[classes.length];
+        Map<T, Integer> cc = new HashMap<>();
+        int cur = 0;
+
+        for (int i = 0; i < classes.length; i++) {
+            T t = classes[i];
+            if (cc.containsKey(t)) {
+                clss[i] = cc.get(t);
+            } else {
+                this.classes.put(cur, t);
+                cc.put(t, cur);
+                clss[i] = cur;
+                cur++;
+            }
+        }
+        return clss;
+    }
+
 
     @Data
     @RequiredArgsConstructor

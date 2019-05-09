@@ -45,7 +45,7 @@ public class TestDecisionTree {
     @Test
     public void testTrain() {
         BigDecimal[][] vector = new BigDecimal[14][2];
-        int[] classes = new int[14];
+        Integer[] classes = new Integer[14];
 
         classes[0] = 0;//No
         classes[1] = 0;//No
@@ -92,16 +92,16 @@ public class TestDecisionTree {
         vector[12][1] = BigDecimal.valueOf(81);
         vector[13][1] = BigDecimal.valueOf(71);
 
-        DecisionTree dt = C45.trainModel(vector, classes);
+        DecisionTree<Integer> dt = (new C45<Integer>()).trainModel(vector, classes);
 
         int right = 0;
 
         for (int i = 0; i < vector.length; i++) {
-            if (dt.action(vector[i]) == classes[i]) right++;
+            if (dt.action(vector[i]).equals(classes[i])) right++;
         }
 
 
         System.out.println(dt);
-        System.out.println("Accuracy=" + (double)right/(double)vector.length);
+        System.out.println("Accuracy=" + (double) right / (double) vector.length);
     }
 }

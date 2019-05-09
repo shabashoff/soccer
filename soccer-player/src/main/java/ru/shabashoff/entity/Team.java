@@ -1,6 +1,7 @@
 package ru.shabashoff.entity;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
@@ -15,6 +16,7 @@ import java.util.Scanner;
 @Log4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Team implements Serializable {
+    @Getter
     final List<Player> players = new ArrayList<>();
     final Coach coach;
     static int teamCounts = 1;

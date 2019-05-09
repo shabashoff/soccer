@@ -13,21 +13,21 @@ import java.util.List;
 @Data
 @ToString
 @AllArgsConstructor
-public class Action implements Node, Serializable {
-    static final long serialVersionUID = 1L;
+public class Action<T> implements Node<T>, Serializable {
+    static final long serialVersionUID = 2L;
 
-    int type;
+    T command;
 
-    public int run(BigDecimal[] player) {
-        return type;
+    public T run(BigDecimal[] player) {
+        return command;
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        out.writeObject(type);
+        out.writeObject(command);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        type = (int) in.readObject();
+        command = (T) in.readObject();
     }
 
 
