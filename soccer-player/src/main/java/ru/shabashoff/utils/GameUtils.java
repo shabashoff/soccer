@@ -71,7 +71,6 @@ public class GameUtils {
 
     public static double theAverageAngle(double... nums) {
         double sum = 0.0;
-        log.info("Finding average angle :" + Arrays.toString(nums));
         for (double num : nums) {
             while (num < 0) num += 360.0;
 

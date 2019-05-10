@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.stream.IntStream;
-
 import lombok.SneakyThrows;
 import org.junit.Test;
 import ru.shabashoff.decision.C45;
@@ -152,14 +150,12 @@ public class LogToTrain {
         findDependencies(tv, trainSample);
 
         List<BigDecimal[]> vect = new ArrayList<>();
-        List<Integer> clss = new ArrayList<>();
-
-        Map<String, Integer> mpn = new HashMap<>();
-        int n = 0;
+        List<String> clss = new ArrayList<>();
 
         for (Map.Entry<PlayerTime, List<TrainAction>> pt : trainSample.pars.entrySet()) {
             PlayerTime key = pt.getKey();
             List<BigDecimal> bd = tv.get(key);
+
             if (bd != null) {
                 for (TrainAction ta : pt.getValue()) {
 
@@ -167,27 +163,20 @@ public class LogToTrain {
                     q = bd.toArray(q);
                     vect.add(q);
 
-                    if (mpn.containsKey(ta.getName())) {
-                        clss.add(mpn.get(ta.getName()));
-                    } else {
-                        mpn.put(ta.getName(), n);
-                        clss.add(n);
-                        n++;
-                    }
+                    clss.add(ta.getName());
                 }
             }
         }
 
-        System.out.println(mpn);
-
         BigDecimal[][] qq = new BigDecimal[vect.size()][];
         vect.toArray(qq);
 
-        Integer[] cc = new Integer[clss.size()];
+        String[] cc = new String[clss.size()];
         cc = clss.toArray(cc);
-        int ss = 5;
-        Integer ss2 = 5;
-        return (new C45<Integer>()).trainModel(qq, cc);
+
+        System.out.println(Arrays.toString(cc));
+
+        return (new C45<String>()).trainModel(qq, cc);
     }
 
     private void findDependencies(Map<PlayerTime, List<BigDecimal>> tv, TrainSample ts) {

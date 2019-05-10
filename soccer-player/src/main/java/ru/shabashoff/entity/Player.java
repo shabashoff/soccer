@@ -5,15 +5,17 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j;
-import ru.shabashoff.decision.ActionType;
 import ru.shabashoff.decision.DecisionTree;
-import ru.shabashoff.entity.server.*;
+import ru.shabashoff.entity.server.ErrorMessage;
+import ru.shabashoff.entity.server.HearMessage;
+import ru.shabashoff.entity.server.PlayMode;
+import ru.shabashoff.entity.server.SeeMessage;
+import ru.shabashoff.entity.server.SenseBody;
 import ru.shabashoff.utils.GameUtils;
 
 @SuppressWarnings("Duplicates")
@@ -27,7 +29,7 @@ public class Player extends RCSSServerClient implements Serializable {
     final PlayerPosition playerPosition;
     final String teamName;
 
-    PlayMode playMode;
+    PlayMode playMode = PlayMode.before_kick_off;
 
     Point point = new Point();
     Point speed = new Point();
@@ -89,14 +91,15 @@ public class Player extends RCSSServerClient implements Serializable {
     public void rotateToGoal() {
         synchronized (seeMonitor) {
             turn(-(int) (see.getPlayerExpectedAngle() -
-                    GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint)));
+                GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint)));
         }
     }
 
     public void catchAction() {
         if (calcBallPoint() != null && calcExpectedPoint() != null) {
             catchBall(-(int) GameUtils.calcVecAngle(calcExpectedPoint(), calcBallPoint())); //TODO
-        } else {
+        }
+        else {
             catchBall(0);
         }
     }
@@ -106,7 +109,10 @@ public class Player extends RCSSServerClient implements Serializable {
     }
 
     public void kickInGateAction() {
-        kick(50, -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))); //TODO
+        kick(
+            50,
+            -(int) (see.getPlayerExpectedAngle() - GameUtils.calcVecAngle(see.getPlayerExpectedPoint(), goaliePoint))
+        ); //TODO
     }
 
     public void rotateRightAction() {
@@ -119,7 +125,33 @@ public class Player extends RCSSServerClient implements Serializable {
     }
 
     private void action() {
-        sendMessage(tree.action(getSnapshot()));
+        String action = tree.action(getSnapshotV2());
+        BigDecimal[] snV2 = getSnapshotV2();
+
+        String[] ss = action.split("_");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('(').append(ss[0]);
+
+        boolean predParam = false;
+
+        for (int i = 1; i < ss.length; i++) {
+            if (ss[i].equals("PARAM")) predParam = true;
+            else {
+                if (predParam) {
+                    predParam = false;
+                    sb.append(' ').append(snV2[Integer.parseInt(ss[i])]);
+                } else {
+                    sb.append(' ').append(ss[i]);
+                }
+            }
+        }
+
+        sb.append(')');
+
+        System.out.println("command:" + sb.toString());
+
+        sendMessage(sb.toString());
     }
 
     public Point calcExpectedPoint() {
@@ -193,25 +225,38 @@ public class Player extends RCSSServerClient implements Serializable {
     }
 
     public void calcInternalParams(BigDecimal angle, Point pp, Point bp) {
-        if (playerAngle != null && angle != null) playerAngleSpeed = angle.subtract(this.playerAngle);
-        else playerAngleSpeed = DEFAULT_NULL;
+        if (playerAngle != null && angle != null) {
+            playerAngleSpeed = angle.subtract(this.playerAngle);
+        }
+        else {
+            playerAngleSpeed = DEFAULT_NULL;
+        }
 
         this.playerAngle = angle;
 
-        if (pp != null && this.point != null) speed = pp.minusPoint(this.point);
-        else speed = null;
+        if (pp != null && this.point != null) {
+            speed = pp.minusPoint(this.point);
+        }
+        else {
+            speed = null;
+        }
 
         this.point = pp;
 
-        if (bp != null && this.ballPoint != null) ballSpeed = bp.minusPoint(this.ballPoint);
-        else ballSpeed = null;
+        if (bp != null && this.ballPoint != null) {
+            ballSpeed = bp.minusPoint(this.ballPoint);
+        }
+        else {
+            ballSpeed = null;
+        }
 
         this.ballPoint = bp;
 
         if (bp != null && pp != null) {
             lengthToBall = BigDecimal.valueOf(GameUtils.getLength(pp, bp));
             angleToBall = BigDecimal.valueOf(GameUtils.calcVecAngle(pp, bp));
-        } else {
+        }
+        else {
             lengthToBall = DEFAULT_NULL;
             angleToBall = DEFAULT_NULL;
         }
@@ -236,7 +281,8 @@ public class Player extends RCSSServerClient implements Serializable {
 
         if (minAngle > Math.abs(angle)) {
             dash(50);
-        } else {
+        }
+        else {
             turn((int) angle);
 
         }
@@ -290,7 +336,8 @@ public class Player extends RCSSServerClient implements Serializable {
         if (ballPoint != null && expectedPoint != null) {
             args.add(BigDecimal.valueOf(GameUtils.getLength(expectedPoint, ballPoint)));
             args.add(BigDecimal.valueOf(GameUtils.calcVecAngle(expectedPoint, ballPoint)));
-        } else {
+        }
+        else {
             args.add(DEFAULT_NULL);
             args.add(DEFAULT_NULL);
         }
@@ -307,7 +354,8 @@ public class Player extends RCSSServerClient implements Serializable {
         if (pt != null) {
             args.add(BigDecimal.valueOf(pt.getX()));
             args.add(BigDecimal.valueOf(pt.getY()));
-        } else {
+        }
+        else {
             args.add(DEFAULT_NULL);
             args.add(DEFAULT_NULL);
         }

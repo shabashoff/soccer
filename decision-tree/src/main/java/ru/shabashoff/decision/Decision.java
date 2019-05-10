@@ -1,14 +1,13 @@
 package ru.shabashoff.decision;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
-
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @ToString
@@ -33,6 +32,8 @@ public class Decision<T> implements Node<T>, Serializable {
     }
 
     private boolean check(BigDecimal[] nums) {
+        if (nums[indexOfParameter] == null) return true;
+
         return ifStmt.getFunc().apply(nums[indexOfParameter], val);
     }
 
@@ -54,8 +55,9 @@ public class Decision<T> implements Node<T>, Serializable {
         val = (BigDecimal) in.readObject();
         ifStmt = (IfStatement) in.readObject();
         indexOfParameter = (int) in.readObject();
-        left = (Action<T>) in.readObject();
-        right = (Action<T>) in.readObject();
+        left = (Node<T>) in.readObject();
+        right = (Node<T>) in.readObject();
+        decisionRunnableNew = this::check;
     }
 
 
