@@ -35,6 +35,16 @@ public class C45<T> {
 
     @SneakyThrows
     public DecisionTree<T> trainModel(BigDecimal[][] vector, T[] ccc) {
+        int[] ints = new int[vector[0].length];
+
+        Arrays.fill(ints, COUNT_SEP);
+
+        return trainModel(vector, ccc, ints);
+    }
+
+
+    @SneakyThrows
+    public DecisionTree<T> trainModel(BigDecimal[][] vector, T[] ccc,final int[] ints) {
 
         for (BigDecimal[] bd : vector) {
             for (int i = 0; i < bd.length; i++) {
@@ -48,10 +58,6 @@ public class C45<T> {
             throw new IllegalArgumentException("Sizes is illegal");
         }
 
-        int[] ints = new int[vector[0].length];
-
-        Arrays.fill(ints, COUNT_SEP);
-
         int ctnClasses = 0;
 
         InputVector[] inputVectors = new InputVector[vector.length];
@@ -63,7 +69,7 @@ public class C45<T> {
             ctnClasses = Integer.max(ctnClasses, cls + 1);
         }
 
-        return new DecisionTree<>(trainModel(inputVectors, ctnClasses, ints.length * COUNT_SEP, ints));
+        return new DecisionTree<>(trainModel(inputVectors, ctnClasses, Arrays.stream(ints).sum(), ints));
     }
 
     @SneakyThrows
@@ -114,8 +120,8 @@ public class C45<T> {
         Integer curPos = 0;
 
         for (Map.Entry<Integer, TrainingPair> pp : map.entrySet()) {
-            if (max.compareTo(pp.getValue().gain) < 0) {
-                max = pp.getValue().gain;
+            if (max.compareTo(pp.getValue().entropyRight) < 0) {
+                max = pp.getValue().entropyRight;
                 curPos = pp.getKey();
             }
         }
@@ -164,7 +170,7 @@ public class C45<T> {
 
         if (tp == null || tp.isEmpty()) return null;
 
-        return Collections.max(tp, Comparator.comparing(o -> o.gain));
+        return Collections.max(tp, Comparator.comparing(o -> o.val.negate().doubleValue()));
     }
 
     private List<TrainingPair> getTrainingPair(InputVector[] vector, int cntClasses, int i) {
