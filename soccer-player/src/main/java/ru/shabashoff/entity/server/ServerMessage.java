@@ -33,6 +33,8 @@ public abstract class ServerMessage {
                 return new HearMessage();
             case CHANGE_PLAYER_TYPE:
                 return new ChangePlayerType();
+            case SEE_GLOBAL:
+                return new SeeGlobal();
             case ERROR:
                 return new ErrorMessage();
         }

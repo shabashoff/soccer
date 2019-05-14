@@ -174,7 +174,7 @@ public class LogToTrain {
         String[] cc = new String[clss.size()];
         cc = clss.toArray(cc);
 
-        System.out.println(Arrays.toString(cc));
+        System.out.println(cc.length);
 
         return (new C45<String>()).trainModel(qq, cc);
     }

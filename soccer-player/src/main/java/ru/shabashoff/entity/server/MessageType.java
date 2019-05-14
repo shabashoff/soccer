@@ -1,7 +1,7 @@
 package ru.shabashoff.entity.server;
 
 public enum MessageType {
-    SERVER_PARAMS, PLAYER_PARAMS, PLAYER_TYPE, SEE_MESSAGE, INIT_MESSAGE, SENSE_BODY,CHANGE_PLAYER_TYPE,HEAR, ERROR;
+    SERVER_PARAMS, PLAYER_PARAMS, PLAYER_TYPE, SEE_MESSAGE, INIT_MESSAGE, SENSE_BODY,CHANGE_PLAYER_TYPE,SEE_GLOBAL,HEAR, ERROR;
 
     public static MessageType parseType(String type) {
         switch (type) {
@@ -21,6 +21,8 @@ public enum MessageType {
                 return CHANGE_PLAYER_TYPE;
             case "hear":
                 return HEAR;
+            case "see_global":
+                return SEE_GLOBAL;
             case "error":
                 return ERROR;
         }

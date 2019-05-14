@@ -125,6 +125,15 @@ public class GameUtils {
         return a;
     }
 
+    public static boolean isNum(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch(NumberFormatException e){
+            return false;
+        }
+    }
+
     public static BigDecimal log2(BigDecimal val) {
         return BigDecimal.valueOf(Math.log(val.doubleValue()) / Math.log(2));
     }

@@ -73,7 +73,7 @@ public class SeeMessage extends ServerMessage {
 
     Point ballPoint;
 
-    double playerExpectedAngle;
+    Double playerExpectedAngle = null;
 
 
     public SeeMessage() {

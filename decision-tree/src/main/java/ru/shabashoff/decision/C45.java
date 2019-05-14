@@ -28,7 +28,7 @@ import static ru.shabashoff.utils.TreeUtils.divide;
 @SuppressWarnings("Duplicates")
 public class C45<T> {
     private static BigDecimal DEFAULT_NULL = BigDecimal.ZERO;
-    private static final int COUNT_SEP = 1;
+    private static final int COUNT_SEP = 20;
 
     private final Map<Integer, T> classes = new HashMap<>();
 
@@ -44,7 +44,7 @@ public class C45<T> {
 
 
     @SneakyThrows
-    public DecisionTree<T> trainModel(BigDecimal[][] vector, T[] ccc,final int[] ints) {
+    public DecisionTree<T> trainModel(BigDecimal[][] vector, T[] ccc, final int[] ints) {
 
         for (BigDecimal[] bd : vector) {
             for (int i = 0; i < bd.length; i++) {
@@ -90,29 +90,16 @@ public class C45<T> {
             return new Action<>(classes.get(mx));
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(vector[0].vector.length);
-        final CountDownLatch countDownLatch = new CountDownLatch(vector[0].vector.length);
-
         final Map<Integer, TrainingPair> map = Collections.synchronizedMap(new HashMap<>());
-
-        final int finalCntClasses = ctnClasses;
 
         for (int i = 0; i < vector[0].vector.length; i++) {
             if (remaining[i] > 0) {
-                int finalI = i;
-                executor.execute(() -> {
-                    try {
-                        TrainingPair mtp = getMaxGainTrainingPair(vector, finalCntClasses, finalI);
-                        if (mtp != null) map.put(finalI, mtp);
-                    } finally {
-                        countDownLatch.countDown();
-                        //log.info("Row " + finalI + " calculated. Left " + countDownLatch.getCount() + " rows");
-                    }
-                });
-            } else countDownLatch.countDown();
+                TrainingPair mtp = getMaxGainTrainingPair(vector, ctnClasses, i);
+
+                if (mtp != null) map.put(i, mtp);
+            }
         }
 
-        countDownLatch.await();
 
         if (map.isEmpty()) return new Action<>(classes.get(getMaxClass(vector, ctnClasses)));
 
@@ -120,8 +107,8 @@ public class C45<T> {
         Integer curPos = 0;
 
         for (Map.Entry<Integer, TrainingPair> pp : map.entrySet()) {
-            if (max.compareTo(pp.getValue().entropyRight) < 0) {
-                max = pp.getValue().entropyRight;
+            if (max.compareTo(pp.getValue().gain) < 0) {
+                max = pp.getValue().gain;
                 curPos = pp.getKey();
             }
         }
@@ -170,7 +157,7 @@ public class C45<T> {
 
         if (tp == null || tp.isEmpty()) return null;
 
-        return Collections.max(tp, Comparator.comparing(o -> o.val.negate().doubleValue()));
+        return Collections.max(tp, Comparator.comparing(o -> o.gain));
     }
 
     private List<TrainingPair> getTrainingPair(InputVector[] vector, int cntClasses, int i) {
