@@ -1,7 +1,9 @@
 package ru.shabashoff.utils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import lombok.extern.log4j.Log4j;
 import ru.shabashoff.entity.Point;
 import ru.shabashoff.entity.Vector;
@@ -137,4 +139,23 @@ public class GameUtils {
     public static BigDecimal log2(BigDecimal val) {
         return BigDecimal.valueOf(Math.log(val.doubleValue()) / Math.log(2));
     }
+
+    public static List<String> parseMessages(String message) {
+        List<String> list = new ArrayList<>();
+        char[] chars = message.toCharArray();
+        int start = 0;
+        int count = 0;
+        for (int i = 0; i < chars.length; i++) {
+            if (chars[i] == '(') count++;
+            else if (chars[i] == ')') count--;
+
+            if ((chars[i] == ' ') && count == 0) {
+                list.add(new String(chars, start, i - start));
+                start = i + 1;
+            }
+        }
+        list.add(new String(chars, start, message.length() - start));
+        return list;
+    }
+
 }

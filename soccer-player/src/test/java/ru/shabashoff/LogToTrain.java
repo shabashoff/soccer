@@ -40,7 +40,8 @@ public class LogToTrain {
             List<BigDecimal> bd = tv.get(key);
             if (bd != null) {
                 System.out.println("player time is null:" + key);
-            } else {
+            }
+            else {
                 continue;
 
             }
@@ -57,7 +58,8 @@ public class LogToTrain {
         for (TrainAction act : trainSample.acts) {
             if (ss.containsKey(act.action)) {
                 clss[i] = ss.get(act.action);
-            } else {
+            }
+            else {
                 ss.put(act.action, n);
                 clss[i] = n;
                 n++;
@@ -102,7 +104,8 @@ public class LogToTrain {
         for (TrainAction act : acts) {
             if (ss.containsKey(act.action)) {
                 clss[i] = ss.get(act.action);
-            } else {
+            }
+            else {
                 ss.put(act.action, n);
                 clss[i] = n;
                 n++;
@@ -176,6 +179,12 @@ public class LogToTrain {
 
         System.out.println(cc.length);
 
+        /*int[] ints = new int[qq[0].length];
+
+        Arrays.fill(ints, 2);
+
+        ints[1] = 4;*/
+
         return (new C45<String>()).trainModel(qq, cc);
     }
 
@@ -232,13 +241,13 @@ public class LogToTrain {
     @SneakyThrows
     private TrainSample getTrainSample(String fileName) {
         HashSet<String> msgs = new HashSet<>(Arrays.asList(
-                "kick",
-                "catch",
-                "turn",
-                "move",
-                "dash",
-                "tackle",
-                "turn_neck"
+            "kick",
+            "catch",
+            "turn",
+            "move",
+            "dash",
+            "tackle",
+            "turn_neck"
         ));
 
         FileInputStream fi = new FileInputStream(fileName);
@@ -271,8 +280,8 @@ public class LogToTrain {
             int n = Integer.parseInt(st);
 
             List<String> prs = getMessages(str.substring(line[0].length() + line[1].length() + line[2].length() + 3)
-                    .replace("(", " (")
-                    .trim());
+                                               .replace("(", " (")
+                                               .trim());
 
             PlayerTime pt = new PlayerTime(n, l + r, 0);
 
@@ -294,7 +303,8 @@ public class LogToTrain {
                     if (pars.containsKey(pt)) {
                         pars.get(pt).add(ta);
                         //System.out.println(pt + ":" + pars.get(pt));
-                    } else {
+                    }
+                    else {
                         ArrayList<TrainAction> ll = new ArrayList<>();
                         ll.add(ta);
                         pars.put(pt, ll);
@@ -470,7 +480,8 @@ public class LogToTrain {
     private static boolean isNumeric(String strNum) {
         try {
             double d = Double.parseDouble(strNum);
-        } catch (NumberFormatException | NullPointerException nfe) {
+        }
+        catch (NumberFormatException | NullPointerException nfe) {
             return false;
         }
         return true;
@@ -484,7 +495,8 @@ public class LogToTrain {
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == '(') {
                 count++;
-            } else if (chars[i] == ')') {
+            }
+            else if (chars[i] == ')') {
                 count--;
             }
 
@@ -519,9 +531,9 @@ public class LogToTrain {
         @Override
         public String toString() {
             return "TrainSample{" +
-                    "pars=" + pars +
-                    ", acts=" + acts +
-                    '}';
+                "pars=" + pars +
+                ", acts=" + acts +
+                '}';
         }
     }
 
@@ -547,8 +559,8 @@ public class LogToTrain {
             }
             PlayerTime that = (PlayerTime) o;
             return playerId == that.playerId &&
-                    time == that.time &&
-                    side == that.side;
+                time == that.time &&
+                side == that.side;
         }
 
         @Override
@@ -559,10 +571,10 @@ public class LogToTrain {
         @Override
         public String toString() {
             return "PlayerTime{" +
-                    "playerId=" + playerId +
-                    ", time=" + time +
-                    ", side=" + side +
-                    '}';
+                "playerId=" + playerId +
+                ", time=" + time +
+                ", side=" + side +
+                '}';
         }
     }
 
@@ -585,7 +597,7 @@ public class LogToTrain {
             }
             TrainAction that = (TrainAction) o;
             return action.equals(that.action)
-                    && params.equals(that.params);
+                && params.equals(that.params);
         }
 
         @Override

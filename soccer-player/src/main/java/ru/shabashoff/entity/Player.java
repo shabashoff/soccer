@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -124,7 +123,7 @@ public class Player extends RCSSServerClient implements Serializable {
         goTo(ballPoint.getX(), ballPoint.getY());
     }
 
-    private void action() {
+    public void action() {
         String action = tree.action(getSnapshotV2());
         BigDecimal[] snV2 = getSnapshotV2();
 
@@ -214,7 +213,7 @@ public class Player extends RCSSServerClient implements Serializable {
 
     @Override
     protected void onSeeMessage(SeeMessage message) {
-        synchronized (seeMonitor) {
+        /*synchronized (seeMonitor) {
             see = message;
             see.findPlayerPointAngle();
 
@@ -225,7 +224,7 @@ public class Player extends RCSSServerClient implements Serializable {
 
         if (ballCatchable != 0) {
             ballCatchable--;
-        }
+        }*/
     }
 
     public SenseBody getSense() {
