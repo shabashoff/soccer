@@ -1,9 +1,8 @@
 package ru.shabashoff.utils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
 import lombok.extern.log4j.Log4j;
 import ru.shabashoff.entity.Point;
 import ru.shabashoff.entity.Vector;
@@ -12,7 +11,7 @@ import ru.shabashoff.entity.server.SeeMessage;
 @Log4j
 public class GameUtils {
     static final double TO_RADIANS_CONST = Math.PI / 180.0;
-
+    static final Map<Integer, Point> playersPoint = new HashMap<>();
 
     public static double diffAngles(double a1, double a2) {
         if (a1 < 0.0) a1 = 360 + a1;
@@ -106,13 +105,13 @@ public class GameUtils {
         return new Point(xSum / points.length, ySum / points.length);
     }
 
-    public static double getLength(Point p1, Point p2) {
+    public static double calcLength(Point p1, Point p2) {
         return new Vector(p1, p2).getLength();
     }
 
 
     public static boolean isBallCatchable(Point player, Point ball) {
-        return getLength(player, ball) <= 1.0;
+        return calcLength(player, ball) <= 1.0;
     }
 
     public static boolean isBallCatchable(SeeMessage see) {
@@ -131,7 +130,7 @@ public class GameUtils {
         try {
             Double.parseDouble(str);
             return true;
-        } catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             return false;
         }
     }
@@ -158,4 +157,11 @@ public class GameUtils {
         return list;
     }
 
+    public static void setPlayerPoint(int id, Point pp) {
+        playersPoint.put(id, pp);
+    }
+
+    public static Point getPlayerPoint(int id) {
+        return playersPoint.get(id);
+    }
 }

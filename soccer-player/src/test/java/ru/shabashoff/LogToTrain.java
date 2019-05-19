@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
+
 import lombok.SneakyThrows;
 import org.junit.Test;
 import ru.shabashoff.decision.C45;
@@ -19,6 +20,7 @@ import ru.shabashoff.entity.Player;
 import ru.shabashoff.entity.Point;
 import ru.shabashoff.entity.Team;
 import ru.shabashoff.entity.server.PlayMode;
+import ru.shabashoff.utils.GameUtils;
 
 @SuppressWarnings("ALL")
 public class LogToTrain {
@@ -40,8 +42,7 @@ public class LogToTrain {
             List<BigDecimal> bd = tv.get(key);
             if (bd != null) {
                 System.out.println("player time is null:" + key);
-            }
-            else {
+            } else {
                 continue;
 
             }
@@ -58,8 +59,7 @@ public class LogToTrain {
         for (TrainAction act : trainSample.acts) {
             if (ss.containsKey(act.action)) {
                 clss[i] = ss.get(act.action);
-            }
-            else {
+            } else {
                 ss.put(act.action, n);
                 clss[i] = n;
                 n++;
@@ -104,8 +104,7 @@ public class LogToTrain {
         for (TrainAction act : acts) {
             if (ss.containsKey(act.action)) {
                 clss[i] = ss.get(act.action);
-            }
-            else {
+            } else {
                 ss.put(act.action, n);
                 clss[i] = n;
                 n++;
@@ -179,12 +178,6 @@ public class LogToTrain {
 
         System.out.println(cc.length);
 
-        /*int[] ints = new int[qq[0].length];
-
-        Arrays.fill(ints, 2);
-
-        ints[1] = 4;*/
-
         return (new C45<String>()).trainModel(qq, cc);
     }
 
@@ -241,13 +234,12 @@ public class LogToTrain {
     @SneakyThrows
     private TrainSample getTrainSample(String fileName) {
         HashSet<String> msgs = new HashSet<>(Arrays.asList(
-            "kick",
-            "catch",
-            "turn",
-            "move",
-            "dash",
-            "tackle",
-            "turn_neck"
+                "kick",
+                "catch",
+                "turn",
+                "move",
+                "dash",
+                "tackle"
         ));
 
         FileInputStream fi = new FileInputStream(fileName);
@@ -280,8 +272,8 @@ public class LogToTrain {
             int n = Integer.parseInt(st);
 
             List<String> prs = getMessages(str.substring(line[0].length() + line[1].length() + line[2].length() + 3)
-                                               .replace("(", " (")
-                                               .trim());
+                    .replace("(", " (")
+                    .trim());
 
             PlayerTime pt = new PlayerTime(n, l + r, 0);
 
@@ -303,8 +295,7 @@ public class LogToTrain {
                     if (pars.containsKey(pt)) {
                         pars.get(pt).add(ta);
                         //System.out.println(pt + ":" + pars.get(pt));
-                    }
-                    else {
+                    } else {
                         ArrayList<TrainAction> ll = new ArrayList<>();
                         ll.add(ta);
                         pars.put(pt, ll);
@@ -366,17 +357,27 @@ public class LogToTrain {
 
         for (int i = 2; i < msg.size(); i++) {
             List<BigDecimal> po = getParametersOld(msg.get(i));
-            Long id = po.get(0).longValue();
+
+            if (po.get(0).equals(BigDecimal.ONE)) break;
+
+            Long id = po.get(1).longValue();
             player = players.get(id);
 
-            Point point = new Point(po.get(3), po.get(4));
-            BigDecimal angle = po.get(7);
-
-            if (id == 1) {
-                System.out.println(po);
-            }
+            Point point = new Point(po.get(4), po.get(5));
+            BigDecimal angle = po.get(8);
 
             player.calcInternalParams(angle, point, bp);
+            GameUtils.setPlayerPoint(id.intValue(), point);
+        }
+
+        for (int i = 2; i < msg.size(); i++) {
+            List<BigDecimal> po = getParametersOld(msg.get(i));
+
+            if (po.get(0).equals(BigDecimal.ONE)) break;
+
+            Long id = po.get(1).longValue();
+            player = players.get(id);
+
             list.add(player.getSnapshotV2(true));
         }
 
@@ -387,10 +388,12 @@ public class LogToTrain {
     private List<BigDecimal> getParametersOld(String msg) {
         List<String> pps = getMessages(msg.substring(1, msg.length() - 1));
         String s = pps.get(0);
+        BigDecimal side = getMessages(s.substring(1, s.length() - 1)).get(0).equals("l") ? BigDecimal.ZERO : BigDecimal.ONE;
         BigDecimal id = new BigDecimal(getMessages(s.substring(1, s.length() - 1)).get(1));
 
         List<BigDecimal> parameters = new ArrayList<>();
 
+        parameters.add(side);
         parameters.add(id);
         parameters.add(BigDecimal.valueOf(Double.parseDouble(pps.get(1))));
         parameters.add(new BigDecimal(pps.get(2).charAt(pps.get(2).length() - 1)));
@@ -480,8 +483,7 @@ public class LogToTrain {
     private static boolean isNumeric(String strNum) {
         try {
             double d = Double.parseDouble(strNum);
-        }
-        catch (NumberFormatException | NullPointerException nfe) {
+        } catch (NumberFormatException | NullPointerException nfe) {
             return false;
         }
         return true;
@@ -495,8 +497,7 @@ public class LogToTrain {
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == '(') {
                 count++;
-            }
-            else if (chars[i] == ')') {
+            } else if (chars[i] == ')') {
                 count--;
             }
 
@@ -531,9 +532,9 @@ public class LogToTrain {
         @Override
         public String toString() {
             return "TrainSample{" +
-                "pars=" + pars +
-                ", acts=" + acts +
-                '}';
+                    "pars=" + pars +
+                    ", acts=" + acts +
+                    '}';
         }
     }
 
@@ -559,8 +560,8 @@ public class LogToTrain {
             }
             PlayerTime that = (PlayerTime) o;
             return playerId == that.playerId &&
-                time == that.time &&
-                side == that.side;
+                    time == that.time &&
+                    side == that.side;
         }
 
         @Override
@@ -571,10 +572,10 @@ public class LogToTrain {
         @Override
         public String toString() {
             return "PlayerTime{" +
-                "playerId=" + playerId +
-                ", time=" + time +
-                ", side=" + side +
-                '}';
+                    "playerId=" + playerId +
+                    ", time=" + time +
+                    ", side=" + side +
+                    '}';
         }
     }
 
@@ -597,7 +598,7 @@ public class LogToTrain {
             }
             TrainAction that = (TrainAction) o;
             return action.equals(that.action)
-                && params.equals(that.params);
+                    && params.equals(that.params);
         }
 
         @Override

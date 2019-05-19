@@ -57,7 +57,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>ru.shabashoff.start.Launch</mainClass>
+                            <mainClass>ru.shabashoff.Launch</mainClass>
                             <classpathPrefix>dependency-jars/</classpathPrefix>
                         </manifest>
                     </archive>
@@ -76,7 +76,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>ru.shabashoff.start.Launch</mainClass>
+                    <mainClass>ru.shabashoff.Launch</mainClass>
                 </configuration>
             </plugin>
         </plugins>

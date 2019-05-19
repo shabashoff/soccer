@@ -1,4 +1,4 @@
-package ru.shabashoff.start;
+package ru.shabashoff;
 
 import lombok.AccessLevel;
 import lombok.SneakyThrows;

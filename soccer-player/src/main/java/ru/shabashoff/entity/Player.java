@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,7 +55,6 @@ public class Player extends RCSSServerClient implements Serializable {
     final Point goaliePoint = new Point(54, 0);
 
     int ballCatchable = 0;
-
 
     private static final BigDecimal DEFAULT_NULL = BigDecimal.ZERO;
 
@@ -172,7 +172,7 @@ public class Player extends RCSSServerClient implements Serializable {
                     log.error(e + "Number:" + pa);
                 }
             }
-                return DEFAULT_NULL;
+            return DEFAULT_NULL;
 
         }
     }
@@ -261,7 +261,7 @@ public class Player extends RCSSServerClient implements Serializable {
         this.ballPoint = bp;
 
         if (bp != null && pp != null) {
-            lengthToBall = BigDecimal.valueOf(GameUtils.getLength(pp, bp));
+            lengthToBall = BigDecimal.valueOf(GameUtils.calcLength(pp, bp));
             angleToBall = BigDecimal.valueOf(GameUtils.calcVecAngle(pp, bp));
         } else {
             lengthToBall = DEFAULT_NULL;
@@ -311,14 +311,21 @@ public class Player extends RCSSServerClient implements Serializable {
         args.add(BigDecimal.valueOf(playerPosition.internalPos));
         args.add(BigDecimal.valueOf(playMode.ordinal()));
 
-        addPoint(args, point);
-        addPoint(args, speed);
+        //addPoint(args, point);
+        //addPoint(args, speed);
 
         args.add(playerAngle);
         args.add(playerAngleSpeed);
 
-        addPoint(args, ballPoint);
-        addPoint(args, ballSpeed);
+        for (int i = 1; i < 12; i++) {
+            if (i != id) {
+                args.add(BigDecimal.valueOf(GameUtils.calcLength(point, GameUtils.getPlayerPoint(i))));
+                args.add(BigDecimal.valueOf(GameUtils.calcVecAngle(point, GameUtils.getPlayerPoint(i))));
+            }
+        }
+
+        //addPoint(args, ballPoint);
+        //addPoint(args, ballSpeed);
 
         args.add(angleToBall);
         args.add(lengthToBall);

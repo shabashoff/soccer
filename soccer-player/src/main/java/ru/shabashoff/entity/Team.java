@@ -19,6 +19,7 @@ public class Team implements Serializable {
     static int teamCounts = 1;
 
     final DecisionTree<String> dt = DecisionTree.loadFromFile("soccer-player/testSample.dt");
+//    final DecisionTree<String> dt = null;
 
 
     public Team() {

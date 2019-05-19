@@ -8,6 +8,7 @@ import ru.shabashoff.entity.server.MessageType;
 import ru.shabashoff.entity.server.SeeGlobal;
 import ru.shabashoff.entity.server.ServerMessage;
 import ru.shabashoff.parser.MsgParser;
+import ru.shabashoff.utils.GameUtils;
 
 @Log4j
 public class Coach extends UdpServerClient {
@@ -32,8 +33,12 @@ public class Coach extends UdpServerClient {
             for (Player player : players) {
                 SeeGlobal.Info info = gl.getPlayers().get(player.getId());
                 player.calcInternalParams(info.getAngle(), info.getPoint(), gl.getBallPoint());
+                GameUtils.setPlayerPoint(player.getId(),info.getPoint());
+            }
+            for (Player player : players) {
                 player.action();
             }
+
         }
     }
 
